@@ -1,0 +1,16 @@
+{
+  "name": "edgedl",
+  "version": "1.0.0",
+  "description": "EdgeDL: Android Edge 下载链接自动检测并调用外部下载器",
+  "main": "rollup.config.mjs",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "type": "module",
+  "devDependencies": {
+    "rollup": "^4.57.1",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "rollup-plugin-userscript-meta": "^1.0.0"
+  }
+}
