@@ -7,8 +7,8 @@
   <a href="https://github.com/Chumor/EdgeDL" title="GitHub 仓库">
     <img src="https://img.shields.io/badge/GitHub-EdgeDL-181717?logo=github&logoColor=white&style=for-the-badge" alt="GitHub 仓库">
   </a>
-  <a href="https://github.com/Chumor/EdgeDL/releases" title="Release">
-    <img src="https://img.shields.io/github/v/release/Chumor/EdgeDL?color=2ea44f&logo=github&logoColor=white&style=for-the-badge" alt="Release">
+  <a href="https://github.com/Chumor/EdgeDL/releases/latest" title="Release">
+    <img src="https://img.shields.io/github/v/release/Chumor/EdgeDL?&logo=github&logoColor=white&style=for-the-badge" alt="Release">
   </a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0" title="Apache-2.0 License">
     <img src="https://img.shields.io/badge/License-Apache_2.0-007EC6?logo=apache&logoColor=white&style=for-the-badge" alt="Apache-2.0 License">
