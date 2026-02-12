@@ -37,9 +37,8 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         uses: ncipollo/release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          token: ${{ secrets.PAT_TOKEN }}
           tag: v${{ steps.release_info.outputs.version }}
           name: v${{ steps.release_info.outputs.version }}
           body: ${{ steps.release_info.outputs.body }}
@@ -48,8 +47,6 @@ jobs:
 
       - name: Upload EdgeDL.user.js to release
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: dist/EdgeDL.user.js
