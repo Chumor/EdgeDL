@@ -6,6 +6,8 @@ on:
 jobs:
   build_release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -34,14 +36,15 @@ jobs:
           echo "待补" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release with asset
-        uses: ncipollo/release-action@v1
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.PAT_TOKEN }}
-          tag: v${{ steps.release_info.outputs.version }}
+          files: dist/EdgeDL.user.js
+          tag_name: v${{ steps.release_info.outputs.version }}
           name: v${{ steps.release_info.outputs.version }}
           body: ${{ steps.release_info.outputs.body }}
           draft: false
           prerelease: false
-          skipIfReleaseExists: true
-          artifacts: dist/EdgeDL.user.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
