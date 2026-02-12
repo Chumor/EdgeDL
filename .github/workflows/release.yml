@@ -25,7 +25,7 @@ jobs:
       - name: Get version and generate release body
         id: release_info
         run: |
-          VERSION=$(node -e "const cfg = require('./rollup.config.js'); console.log(cfg.output.banner.match(/@version\s+([\d.]+)/)[1])")
+          VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
           DATE=$(date +%Y-%m-%d)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "body<<EOF" >> $GITHUB_OUTPUT
