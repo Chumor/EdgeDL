@@ -70,3 +70,6 @@
 
 **Apache License 2.0** — 免费用于个人及商业项目  
 详见 [LICENSE](./LICENSE)
+
+## 致谢
+Vectors and icons by <a href="https://www.svgrepo.com" target="_blank">SVG Repo</a>
