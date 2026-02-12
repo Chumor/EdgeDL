@@ -43,6 +43,7 @@ jobs:
           body: ${{ steps.release_info.outputs.body }}
           draft: false
           prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload EdgeDL.user.js to release
         uses: actions/upload-release-asset@v1
