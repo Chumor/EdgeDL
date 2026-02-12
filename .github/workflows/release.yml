@@ -36,14 +36,15 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v2
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.release_info.outputs.version }}
           release_name: v${{ steps.release_info.outputs.version }}
           body: ${{ steps.release_info.outputs.body }}
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload EdgeDL.user.js to release
         uses: actions/upload-release-asset@v1
