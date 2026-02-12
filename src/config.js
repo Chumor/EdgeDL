@@ -4,7 +4,7 @@ export const DOWNLOADERS = {
     ADM: 'com.dv.adm'
 };
 
- // 默认下载器，用户可选 .IDM / .ADM
+ // 默认下载器，可选 .IDM / .ADM
 export let selectedDownloader = DOWNLOADERS.IDM;
 
 // 下载链接关键字匹配

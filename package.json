@@ -1,7 +1,7 @@
 {
   "name": "edgedl",
   "version": "1.0.0",
-  "description": "EdgeDL: Android Edge 下载链接自动检测并调用外部下载器",
+  "description": "EdgeDL：让 Android Edge 浏览器使用外部下载器下载文件",
   "author": "Chumor",
   "license": "Apache-2.0",
   "main": "rollup.config.mjs",
