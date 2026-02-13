@@ -1,35 +1,30 @@
 import { openIDM } from './idm.js';
 import { openADM } from './adm.js';
-import { DOWNLOADERS, selectedDownloader } from '../config.js';
+import { DOWNLOADERS } from '../config.js';
 import { showToast } from '../toast.js';
 
-// 用户自定义选择弹窗
-export function openDownload(url) {
-    const choice = prompt(
-        '选择下载器:\n1. 1DM\n2. 1DM+\n3. ADM\n4. Edge',
-        '1'
-    );
-
-    switch(choice) {
-        case '1':
+// 调用指定下载器下载
+export function openDownload(url, downloader) {
+    switch (downloader) {
+        case 'idm.internet.download.manager':
             showToast('⚡ 1DM 正在唤起');
             openIDM(url, 'idm.internet.download.manager');
             break;
-        case '2':
+
+        case DOWNLOADERS.IDM:
             showToast('⚡ 1DM+ 正在唤起');
             openIDM(url, DOWNLOADERS.IDM);
             break;
-        case '3':
+
+        case DOWNLOADERS.ADM:
             showToast('⚡ ADM 正在唤起');
             openADM(url);
             break;
-        case '4':
-            showToast('⚡ Edge 内置下载');
-            window.location.href = url;
-            break;
+
+        case 'edge':
         default:
-            showToast('⚡ 默认使用 IDM+');
-            openIDM(url, DOWNLOADERS.IDM);
+            showToast('⚡ Edge 内置下载');
+            window.open(url, '_blank');
             break;
     }
 }

@@ -3,7 +3,7 @@ import { openADM } from './intent/adm.js';
 import { DOWNLOADERS } from './config.js';
 import { showToast } from './toast.js';
 
-export function showDownloadPicker(url) {
+export function showDownloadPicker(url, callback) {
     if(document.getElementById('edgedl-picker')) return;
 
     const idmIcon = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPg0KPHN2ZyB3aWR0aD0iODAwcHgiIGhlaWdodD0iODAwcHgiIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDE5MiAxOTIiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik00NS45IDg4LjJjMCAxLjItLjcgMi4xLTEuOSAyLjMtMTMuMiAyLjktMjIuNSAxNC44LTIyIDI4IC4zIDcuNCAzLjggMTQuNCA5LjMgMTkuNCA1LjggNS4yIDEyLjggNyAyMC40IDYuOSAxMC0uMSAyMC4yIDAgMzAuNCAwaDU4LjNjOC43IDAgMTYuMS0yLjMgMjIuMS04LjggNS40LTUuOCA4LjQtMTQgNy4zLTIxLjktMS40LTEwLjUtOS41LTE5LjYtMjAuNC0yMi42LTEuMi0uMy0xLjktMS41LTEuNy0yLjUuNi00LjUgMS4yLTE0LjItNC41LTIzLjktOC4zLTE0LTIyLjctMTYuOS0yNS0xNy4zLTEyLjktMi4zLTIyLjYgMy0yNSA0LjMtOS40IDUuNS0xMy44IDEzLjUtMTUuNyAxOC0uNSAxLjQtMi4xIDEuOS0zLjQgMS4yLTUuNC0zLjMtMTIuMS0zLjctMTcuNy0xLjItNi42IDMtMTAuOCAxMC4zLTEwLjUgMTguMXptNTUuOC03Ljd2MjkuM0wxMTQgOTcuNWwtMTIuMyAxMi4zLTEyLjMtMTIuM20tNS4yIDI3LjdoMzUiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEyO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoxMCIvPjwvc3ZnPg==';
@@ -18,35 +18,46 @@ export function showDownloadPicker(url) {
         <div class="edgedl-card">
             <h3>选择下载器</h3>
             <div class="edgedl-options">
-                <button data-pkg="idm.internet.download.manager" data-check="idm">
+                <button data-pkg="${DOWNLOADERS.IDM}">
                     <img src="${idmIcon}" /> 1DM
                 </button>
-                <button data-pkg="${DOWNLOADERS.IDM}" data-check="idmplus">
+                <button data-pkg="${DOWNLOADERS.IDM}">
                     <img src="${idmPlusIcon}" /> 1DM+
                 </button>
-                <button data-pkg="adm" data-check="adm">
+                <button data-pkg="${DOWNLOADERS.ADM}">
                     <img src="${admIcon}" /> ADM
                 </button>
                 <button data-pkg="edge">
                     <img src="${edgeIcon}" /> Edge
                 </button>
             </div>
+            <label style="margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                <input type="checkbox" id="edgedl-set-default" /> 设为默认下载器
+            </label>
         </div>
     `;
 
-    document.body.appendChild(picker);
+    document.documentElement.appendChild(picker);
 
     // 注入下载器选择弹窗样式
     const style = document.createElement('style');
-    style.textContent = `  
-        #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 999999; }  
-        #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; }  
-        #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; }  
-        #edgedl-picker h3 { margin: 0 0 16px 0; font-weight: 500; font-size: 16px; }  
-        #edgedl-picker .edgedl-options { display: flex; flex-direction: column; width: 100%; gap: 10px; }  
-        #edgedl-picker .edgedl-options button { display: flex; align-items: center; gap: 10px; padding: 10px; border: none; border-radius: 8px; background: #f2f2f2; font-weight: 500; cursor: pointer; transition: background 0.2s; }  
-        #edgedl-picker .edgedl-options button:hover { background: #e0e0e0; }  
-        #edgedl-picker .edgedl-options img { width: 24px; height: 24px; }  
+    style.textContent = `
+        #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 2147483647; }
+        #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; }
+        #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; }
+        #edgedl-picker h3 { margin: 0 0 16px 0; font-weight: 500; font-size: 16px; }
+        #edgedl-picker .edgedl-options { display: flex; flex-direction: column; width: 100%; gap: 12px; }
+        #edgedl-picker .edgedl-options button { display: flex; align-items: center; gap: 10px; padding: 10px; border: none; border-radius: 12px; background: #f2f2f2; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        #edgedl-picker .edgedl-options button:hover { background: #e0e0e0; }
+        #edgedl-picker .edgedl-options img { width: 24px; height: 24px; }
+        @media (prefers-color-scheme: dark) {
+            #edgedl-picker .edgedl-card { background: #1E1E1E; color: #FFFFFF; box-shadow: 0 4px 16px rgba(0,0,0,0.6); border-radius: 24px; }
+            #edgedl-picker .edgedl-options button { background: #2C2C2C; color: #FFFFFF; transition: background 0.2s, box-shadow 0.2s; }
+            #edgedl-picker .edgedl-options button:hover { background: #3A3A3A; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+            #edgedl-picker .edgedl-options button:active { background: #4A4A4A; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+            #edgedl-picker .edgedl-options img { filter: brightness(1.5) contrast(1.2); }
+            #edgedl-picker .edgedl-options button { background: #2C2C2C; color: #FFFFFF; }
+        }
 
         @keyframes edgedl-fade-in {
             from { opacity: 0; }
@@ -60,31 +71,63 @@ export function showDownloadPicker(url) {
     `;
     document.head.appendChild(style);
 
+    // 读取默认下载器
+    const defaultDownloader = localStorage.getItem('edgedl-default-downloader');
+    const defaultCheckbox = picker.querySelector('#edgedl-set-default');
+    // 明确设置 checkbox 状态（存在则选中，否则不选中）
+    defaultCheckbox.checked = !!defaultDownloader;
+    if (defaultDownloader) {
+        // 高亮默认下载器按钮
+        const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`);
+        if (defaultBtn) defaultBtn.classList.add('selected');
+    }
+
+    // 当复选框变化时立即保存或清除“待设置”标志（保证能在点击按钮时写入正确的包名）
+    defaultCheckbox.addEventListener('change', () => {
+        if (defaultCheckbox.checked) {
+            // 标记为“用户希望设为默认”，但具体包名留到点击按钮时写入
+            localStorage.setItem('edgedl-default-pending', '1');
+        } else {
+            // 取消：移除已保存的默认和待设置标志
+            localStorage.removeItem('edgedl-default-downloader');
+            localStorage.removeItem('edgedl-default-pending');
+        }
+    });
+    
+    // 按钮高亮样式
+    style.textContent += `
+        #edgedl-picker .edgedl-options button.selected {
+            outline: 2px solid #4CAF50;
+        }
+    `;
+    
     // 点击唤起
-    picker.querySelectorAll('button').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
+    picker.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
             const pkg = btn.dataset.pkg;
-            switch(pkg){
-                case 'idm.internet.download.manager':
-                case DOWNLOADERS.IDM:
-                    showToast(`⚡ ${btn.textContent.trim()} 正在唤起`);
-                    openIDM(url, pkg);
-                    break;
-                case 'adm':
-                    showToast('⚡ ADM 正在唤起');
-                    openADM(url);
-                    break;
-                case 'edge':
-                    showToast('⚡ Edge 内置下载');
-                    window.location.href = url;
-                    break;
+
+            // 若复选框已勾选或之前标记为“待设置”，保存为默认；否则清除默认（确保下次继续弹窗）
+            if (defaultCheckbox.checked || localStorage.getItem('edgedl-default-pending')) {
+                localStorage.setItem('edgedl-default-downloader', pkg);
+                localStorage.removeItem('edgedl-default-pending');
+            } else {
+                localStorage.removeItem('edgedl-default-downloader');
             }
+
+            // 调用回调唤起下载器
+            if (typeof callback === 'function') callback(pkg);
+
             picker.remove();
+            
+            // 通知外部（例如油猴菜单注册器）弹窗已关闭，方便重注册菜单
+            window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         });
     });
 
     // 点击背景关闭
-    picker.querySelector('.edgedl-bg').addEventListener('click', ()=>{
+    picker.querySelector('.edgedl-bg').addEventListener('click', () => {
         picker.remove();
+        // 通知外部（例如油猴菜单注册器）弹窗已关闭，方便重注册菜单
+        window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
     });
 }

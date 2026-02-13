@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         EdgeDL
 // @namespace    https://github.com/Chumor/EdgeDL
-// @version      1.1.0
+// @version      1.2.0
 // @description  EdgeDL：让 Android Edge 浏览器使用外部下载器下载文件
 // @icon         data:image/png;base64,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
 // @author       Chumor
 // @match        *://*/*
-// @grant        none
+// @grant        GM_registerMenuCommand
 // @license      Apache-2.0
 // @run-at       document-start
 // @downloadURL  https://raw.githubusercontent.com/Chumor/EdgeDL/main/dist/EdgeDL.user.js
@@ -20,11 +20,11 @@
     // 下载器用户配置
     const DOWNLOADERS = {
         IDM: 'idm.internet.download.manager.plus',
-        ADM: 'com.dv.adm'
+        ADM: 'com.dv.adm',
     };
 
-     // 默认下载器，可选 .IDM / .ADM
-    let selectedDownloader = DOWNLOADERS.IDM;
+    // 默认下载器
+    localStorage.getItem('edgedl-default-downloader') || DOWNLOADERS.IDM;
 
     // 下载链接关键字匹配
     const EXTENSIONS = [
@@ -97,18 +97,13 @@
 
     function showToast(message, duration = 1500) {
         try {
-            const downloaderName = selectedDownloader === DOWNLOADERS.IDM ? 'IDM+' : 'ADM';
-            const toastMessage = message || `⚡ ${downloaderName} 正在唤起...`;
-
             const toast = document.createElement('div');
-            toast.textContent = toastMessage;
+            toast.textContent = message;
             toast.style.cssText = `
             position: fixed;
             bottom: 15%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            color: #fff;
             font-weight: 500;
             font-size: 13px;
             padding: 10px 20px;
@@ -119,6 +114,14 @@
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         `;
+
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                toast.style.background = 'rgba(255,255,255,0.12)';
+                toast.style.color = '#fff';
+            } else {
+                toast.style.background = 'rgba(0,0,0,0.85)';
+                toast.style.color = '#fff';
+            }
 
             document.body.appendChild(toast);
 
@@ -135,7 +138,33 @@
         }
     }
 
-    function showDownloadPicker(url) {
+    // 调用指定下载器下载
+    function openDownload(url, downloader) {
+        switch (downloader) {
+            case 'idm.internet.download.manager':
+                showToast('⚡ 1DM 正在唤起');
+                openIDM(url, 'idm.internet.download.manager');
+                break;
+
+            case DOWNLOADERS.IDM:
+                showToast('⚡ 1DM+ 正在唤起');
+                openIDM(url, DOWNLOADERS.IDM);
+                break;
+
+            case DOWNLOADERS.ADM:
+                showToast('⚡ ADM 正在唤起');
+                openADM(url);
+                break;
+
+            case 'edge':
+            default:
+                showToast('⚡ Edge 内置下载');
+                window.open(url, '_blank');
+                break;
+        }
+    }
+
+    function showDownloadPicker(url, callback) {
         if(document.getElementById('edgedl-picker')) return;
 
         const idmIcon = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPg0KPHN2ZyB3aWR0aD0iODAwcHgiIGhlaWdodD0iODAwcHgiIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDE5MiAxOTIiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik00NS45IDg4LjJjMCAxLjItLjcgMi4xLTEuOSAyLjMtMTMuMiAyLjktMjIuNSAxNC44LTIyIDI4IC4zIDcuNCAzLjggMTQuNCA5LjMgMTkuNCA1LjggNS4yIDEyLjggNyAyMC40IDYuOSAxMC0uMSAyMC4yIDAgMzAuNCAwaDU4LjNjOC43IDAgMTYuMS0yLjMgMjIuMS04LjggNS40LTUuOCA4LjQtMTQgNy4zLTIxLjktMS40LTEwLjUtOS41LTE5LjYtMjAuNC0yMi42LTEuMi0uMy0xLjktMS41LTEuNy0yLjUuNi00LjUgMS4yLTE0LjItNC41LTIzLjktOC4zLTE0LTIyLjctMTYuOS0yNS0xNy4zLTEyLjktMi4zLTIyLjYgMy0yNSA0LjMtOS40IDUuNS0xMy44IDEzLjUtMTUuNyAxOC0uNSAxLjQtMi4xIDEuOS0zLjQgMS4yLTUuNC0zLjMtMTIuMS0zLjctMTcuNy0xLjItNi42IDMtMTAuOCAxMC4zLTEwLjUgMTguMXptNTUuOC03Ljd2MjkuM0wxMTQgOTcuNWwtMTIuMyAxMi4zLTEyLjMtMTIuM20tNS4yIDI3LjdoMzUiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEyO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoxMCIvPjwvc3ZnPg==';
@@ -150,35 +179,46 @@
         <div class="edgedl-card">
             <h3>选择下载器</h3>
             <div class="edgedl-options">
-                <button data-pkg="idm.internet.download.manager" data-check="idm">
+                <button data-pkg="${DOWNLOADERS.IDM}">
                     <img src="${idmIcon}" /> 1DM
                 </button>
-                <button data-pkg="${DOWNLOADERS.IDM}" data-check="idmplus">
+                <button data-pkg="${DOWNLOADERS.IDM}">
                     <img src="${idmPlusIcon}" /> 1DM+
                 </button>
-                <button data-pkg="adm" data-check="adm">
+                <button data-pkg="${DOWNLOADERS.ADM}">
                     <img src="${admIcon}" /> ADM
                 </button>
                 <button data-pkg="edge">
                     <img src="${edgeIcon}" /> Edge
                 </button>
             </div>
+            <label style="margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                <input type="checkbox" id="edgedl-set-default" /> 设为默认下载器
+            </label>
         </div>
     `;
 
-        document.body.appendChild(picker);
+        document.documentElement.appendChild(picker);
 
         // 注入下载器选择弹窗样式
         const style = document.createElement('style');
-        style.textContent = `  
-        #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 999999; }  
-        #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; }  
-        #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; }  
-        #edgedl-picker h3 { margin: 0 0 16px 0; font-weight: 500; font-size: 16px; }  
-        #edgedl-picker .edgedl-options { display: flex; flex-direction: column; width: 100%; gap: 10px; }  
-        #edgedl-picker .edgedl-options button { display: flex; align-items: center; gap: 10px; padding: 10px; border: none; border-radius: 8px; background: #f2f2f2; font-weight: 500; cursor: pointer; transition: background 0.2s; }  
-        #edgedl-picker .edgedl-options button:hover { background: #e0e0e0; }  
-        #edgedl-picker .edgedl-options img { width: 24px; height: 24px; }  
+        style.textContent = `
+        #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 2147483647; }
+        #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; }
+        #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; }
+        #edgedl-picker h3 { margin: 0 0 16px 0; font-weight: 500; font-size: 16px; }
+        #edgedl-picker .edgedl-options { display: flex; flex-direction: column; width: 100%; gap: 12px; }
+        #edgedl-picker .edgedl-options button { display: flex; align-items: center; gap: 10px; padding: 10px; border: none; border-radius: 12px; background: #f2f2f2; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        #edgedl-picker .edgedl-options button:hover { background: #e0e0e0; }
+        #edgedl-picker .edgedl-options img { width: 24px; height: 24px; }
+        @media (prefers-color-scheme: dark) {
+            #edgedl-picker .edgedl-card { background: #1E1E1E; color: #FFFFFF; box-shadow: 0 4px 16px rgba(0,0,0,0.6); border-radius: 24px; }
+            #edgedl-picker .edgedl-options button { background: #2C2C2C; color: #FFFFFF; transition: background 0.2s, box-shadow 0.2s; }
+            #edgedl-picker .edgedl-options button:hover { background: #3A3A3A; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+            #edgedl-picker .edgedl-options button:active { background: #4A4A4A; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+            #edgedl-picker .edgedl-options img { filter: brightness(1.5) contrast(1.2); }
+            #edgedl-picker .edgedl-options button { background: #2C2C2C; color: #FFFFFF; }
+        }
 
         @keyframes edgedl-fade-in {
             from { opacity: 0; }
@@ -192,33 +232,87 @@
     `;
         document.head.appendChild(style);
 
+        // 读取默认下载器
+        const defaultDownloader = localStorage.getItem('edgedl-default-downloader');
+        const defaultCheckbox = picker.querySelector('#edgedl-set-default');
+        // 明确设置 checkbox 状态（存在则选中，否则不选中）
+        defaultCheckbox.checked = !!defaultDownloader;
+        if (defaultDownloader) {
+            // 高亮默认下载器按钮
+            const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`);
+            if (defaultBtn) defaultBtn.classList.add('selected');
+        }
+
+        // 当复选框变化时立即保存或清除“待设置”标志（保证能在点击按钮时写入正确的包名）
+        defaultCheckbox.addEventListener('change', () => {
+            if (defaultCheckbox.checked) {
+                // 标记为“用户希望设为默认”，但具体包名留到点击按钮时写入
+                localStorage.setItem('edgedl-default-pending', '1');
+            } else {
+                // 取消：移除已保存的默认和待设置标志
+                localStorage.removeItem('edgedl-default-downloader');
+                localStorage.removeItem('edgedl-default-pending');
+            }
+        });
+        
+        // 按钮高亮样式
+        style.textContent += `
+        #edgedl-picker .edgedl-options button.selected {
+            outline: 2px solid #4CAF50;
+        }
+    `;
+        
         // 点击唤起
-        picker.querySelectorAll('button').forEach(btn=>{
-            btn.addEventListener('click', ()=>{
+        picker.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
                 const pkg = btn.dataset.pkg;
-                switch(pkg){
-                    case 'idm.internet.download.manager':
-                    case DOWNLOADERS.IDM:
-                        showToast(`⚡ ${btn.textContent.trim()} 正在唤起`);
-                        openIDM(url, pkg);
-                        break;
-                    case 'adm':
-                        showToast('⚡ ADM 正在唤起');
-                        openADM(url);
-                        break;
-                    case 'edge':
-                        showToast('⚡ Edge 内置下载');
-                        window.location.href = url;
-                        break;
+
+                // 若复选框已勾选或之前标记为“待设置”，保存为默认；否则清除默认（确保下次继续弹窗）
+                if (defaultCheckbox.checked || localStorage.getItem('edgedl-default-pending')) {
+                    localStorage.setItem('edgedl-default-downloader', pkg);
+                    localStorage.removeItem('edgedl-default-pending');
+                } else {
+                    localStorage.removeItem('edgedl-default-downloader');
                 }
+
+                // 调用回调唤起下载器
+                if (typeof callback === 'function') callback(pkg);
+
                 picker.remove();
+                
+                // 通知外部（例如油猴菜单注册器）弹窗已关闭，方便重注册菜单
+                window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
             });
         });
 
         // 点击背景关闭
-        picker.querySelector('.edgedl-bg').addEventListener('click', ()=>{
+        picker.querySelector('.edgedl-bg').addEventListener('click', () => {
             picker.remove();
+            // 通知外部（例如油猴菜单注册器）弹窗已关闭，方便重注册菜单
+            window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         });
+    }
+
+    let menuRegistered = false;
+
+    function registerMenu() {
+        if (menuRegistered) return;
+        if (typeof GM_registerMenuCommand !== 'function') return;
+
+        GM_registerMenuCommand('更改默认下载器', () => {
+            showDownloadPicker('', pkg => {
+                localStorage.setItem('edgedl-default-downloader', pkg);
+            });
+        });
+
+        menuRegistered = true;
+    }
+
+    registerMenu();
+
+    // 获取当前默认下载器
+    function getDefaultDownloader() {
+        return localStorage.getItem('edgedl-default-downloader');
     }
 
     // 全局点击拦截下载
@@ -231,8 +325,15 @@
         if (isDownloadLink(url)) {
             e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
 
-            // 弹出下载选择器供用户选择下载器
-            showDownloadPicker(url);
+            const defaultDownloader = getDefaultDownloader();
+            if (defaultDownloader) {
+                openDownload(url, defaultDownloader);
+            } else {
+                // 弹出下载选择器
+                showDownloadPicker(url, selected => {
+                    openDownload(url, selected);
+                });
+            }
         }
     }, true);
 
