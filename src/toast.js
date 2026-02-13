@@ -2,18 +2,13 @@ import { selectedDownloader, DOWNLOADERS } from './config.js';
 
 export function showToast(message, duration = 1500) {
     try {
-        const downloaderName = selectedDownloader === DOWNLOADERS.IDM ? 'IDM+' : 'ADM';
-        const toastMessage = message || `⚡ ${downloaderName} 正在唤起...`;
-
         const toast = document.createElement('div');
-        toast.textContent = toastMessage;
+        toast.textContent = message;
         toast.style.cssText = `
             position: fixed;
             bottom: 15%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            color: #fff;
             font-weight: 500;
             font-size: 13px;
             padding: 10px 20px;
@@ -24,6 +19,14 @@ export function showToast(message, duration = 1500) {
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         `;
+
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            toast.style.background = 'rgba(255,255,255,0.12)';
+            toast.style.color = '#fff';
+        } else {
+            toast.style.background = 'rgba(0,0,0,0.85)';
+            toast.style.color = '#fff';
+        }
 
         document.body.appendChild(toast);
 

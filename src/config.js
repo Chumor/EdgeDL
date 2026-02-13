@@ -1,11 +1,23 @@
 // 下载器用户配置
 export const DOWNLOADERS = {
     IDM: 'idm.internet.download.manager.plus',
-    ADM: 'com.dv.adm'
+    ADM: 'com.dv.adm',
 };
 
- // 默认下载器，可选 .IDM / .ADM
-export let selectedDownloader = DOWNLOADERS.IDM;
+// 默认下载器
+export let selectedDownloader = localStorage.getItem('edgedl-default-downloader') || DOWNLOADERS.IDM;
+
+// 设置默认下载器
+export function setDefaultDownloader(pkg) {
+    selectedDownloader = pkg;
+    localStorage.setItem('edgedl-default-downloader', pkg);
+}
+
+// 重置默认下载器
+export function resetDefaultDownloader() {
+    selectedDownloader = DOWNLOADERS.IDM;
+    localStorage.removeItem('edgedl-default-downloader');
+}
 
 // 下载链接关键字匹配
 export const EXTENSIONS = [

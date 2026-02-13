@@ -1,8 +1,13 @@
 import { isDownloadLink } from './detector.js';
 import { openDownload } from './intent/factory.js';
-import { showToast } from './toast.js';
-import { selectedDownloader } from './config.js';
 import { showDownloadPicker } from './download-picker.js';
+import { registerMenu } from './menu.js';
+registerMenu();
+
+// 获取当前默认下载器
+function getDefaultDownloader() {
+    return localStorage.getItem('edgedl-default-downloader');
+}
 
 // 全局点击拦截下载
 document.addEventListener('click', e => {
@@ -14,10 +19,14 @@ document.addEventListener('click', e => {
     if (isDownloadLink(url)) {
         e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
 
-        // 弹出下载选择器供用户选择下载器
-        showDownloadPicker(url, selected => {
-            showToast(`⚡ ${selected} 正在唤起`);
-            openDownload(url, selected);
-        });
+        const defaultDownloader = getDefaultDownloader();
+        if (defaultDownloader) {
+            openDownload(url, defaultDownloader);
+        } else {
+            // 弹出下载选择器
+            showDownloadPicker(url, selected => {
+                openDownload(url, selected);
+            });
+        }
     }
 }, true);
