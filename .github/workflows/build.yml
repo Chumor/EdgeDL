@@ -27,8 +27,24 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Resolve artifact name
+        id: artifact
+        run: |
+          VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9A-Za-z.+-]+).*/\1/')
+
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            HASH=$(git rev-parse --short HEAD)
+            NAME="EdgeDL-build-${VERSION}-${HASH}"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            NAME="EdgeDL-build-${VERSION}"
+          else
+            NAME="EdgeDL-build"
+          fi
+
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EdgeDL-build-${{ github.run_id }}
+          name: ${{ steps.artifact.outputs.name }}
           path: dist/EdgeDL.user.js
