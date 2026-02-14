@@ -2,6 +2,7 @@ import { EXTENSIONS, KEYWORDS } from './config.js';
 
 // 下载链接检测
 export function isDownloadLink(url){
+    if(url?.includes('sourceforge.net/projects/') && url.includes('/files/')) return false;
     if(!url || !url.startsWith('http')) return false;
     const lowerUrl = url.toLowerCase();
 

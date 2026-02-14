@@ -5,18 +5,18 @@ export const DOWNLOADERS = {
 };
 
 // 默认下载器
-export let selectedDownloader = localStorage.getItem('edgedl-default-downloader') || DOWNLOADERS.IDM;
+export let selectedDownloader = GM_getValue('edgedl-default-downloader') || DOWNLOADERS.IDM;
 
 // 设置默认下载器
 export function setDefaultDownloader(pkg) {
     selectedDownloader = pkg;
-    localStorage.setItem('edgedl-default-downloader', pkg);
+    GM_setValue('edgedl-default-downloader', pkg);
 }
 
 // 重置默认下载器
 export function resetDefaultDownloader() {
     selectedDownloader = DOWNLOADERS.IDM;
-    localStorage.removeItem('edgedl-default-downloader');
+    GM_deleteValue('edgedl-default-downloader');
 }
 
 // 下载链接关键字匹配
