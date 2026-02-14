@@ -2,9 +2,7 @@ name: Build
 
 on:
   push:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
   pull_request:
   workflow_dispatch:
 
@@ -30,13 +28,13 @@ jobs:
       - name: Resolve artifact name
         id: artifact
         run: |
-          VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9A-Za-z.+-]+).*/\1/')
-          HASH=$(git rev-parse --short HEAD)
+          VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
+          SHORT_SHA=$(git rev-parse --short HEAD)
 
           if [ "${{ github.ref_name }}" = "main" ]; then
-            NAME="EdgeDL-build-${VERSION}"
+            NAME="EdgeDL-build-v${VERSION}"
           else
-            NAME="EdgeDL-build-${VERSION}-${HASH}"
+            NAME="EdgeDL-build-v${VERSION}-${SHORT_SHA}"
           fi
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
