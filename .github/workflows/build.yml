@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Resolve artifact name
+        id: artifact
+        run: |
+          VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
+          SHORT_SHA=$(git rev-parse --short HEAD)
+
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            NAME="EdgeDL-build-v${VERSION}"
+          else
+            NAME="EdgeDL-build-v${VERSION}-${SHORT_SHA}"
+          fi
+
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: dist/EdgeDL.user.js
