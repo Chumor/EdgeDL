@@ -1,1 +1,3 @@
-EdgeDL/dist/
+dist/
+node_modules/dist
+dist

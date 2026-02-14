@@ -6,7 +6,7 @@ registerMenu();
 
 // 获取当前默认下载器
 function getDefaultDownloader() {
-    return localStorage.getItem('edgedl-default-downloader');
+    return GM_getValue('edgedl-default-downloader');
 }
 
 // 全局点击拦截下载
