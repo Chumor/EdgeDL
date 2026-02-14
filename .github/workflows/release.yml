@@ -1,4 +1,4 @@
-name: Build & Release
+name: Release
 
 on:
   workflow_dispatch:
@@ -8,17 +8,14 @@ on:
         required: true
         default: 'false'
         type: choice
-        options:
-          - 'true'
-          - 'false'
+        options: ['true', 'false']
 
   pull_request:
     types: [closed]
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build_release:
+  release:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (
@@ -30,61 +27,43 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npm run build
 
-      - name: Build EdgeDL.user.js
-        run: npm run build
+      - name: Resolve version
+        id: version
+        run: |
+          BASE=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
 
-      - name: Commit dist artifacts to main
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            git fetch --tags
+            LAST=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
+            if [ -z "$LAST" ]; then
+              VER="${BASE}-beta.1"
+            else
+              N=$(echo "$LAST" | sed -E 's/.*-beta\.([0-9]+)/\1/')
+              VER="${BASE}-beta.$((N + 1))"
+            fi
+          else
+            VER="$BASE"
+          fi
+
+          echo "version=$VER" >> $GITHUB_OUTPUT
+
+      - name: Commit dist (main only)
         if: github.ref_name == 'main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dist
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(dist): update build artifacts"
-            git push origin main
-          fi
-
-      - name: Resolve version
-        id: version
-        run: |
-          BASE_VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
-
-          if [ "${{ github.ref_name }}" = "dev" ]; then
-            git fetch --tags
-            LAST_BETA=$(git tag -l "v${BASE_VERSION}-beta.*" | sort -V | tail -n 1)
-
-            if [ -z "$LAST_BETA" ]; then
-              VERSION="${BASE_VERSION}-beta.1"
-            else
-              NUM=$(echo "$LAST_BETA" | sed -E 's/.*-beta\.([0-9]+)/\1/')
-              VERSION="${BASE_VERSION}-beta.$((NUM + 1))"
-            fi
-          else
-            VERSION="$BASE_VERSION"
-          fi
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Generate release body
-        id: release_body
-        run: |
-          DATE=$(date +%Y-%m-%d)
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "## [${{ steps.version.outputs.version }}] - ${DATE}" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "待补" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          git diff --cached --quiet || git commit -m "chore(dist): update build artifacts"
+          git push origin main
 
       - name: Create GitHub Release
         if: |
@@ -96,10 +75,7 @@ jobs:
           )
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/EdgeDL.user.js
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          body: ${{ steps.release_body.outputs.body }}
+          files: dist/EdgeDL.user.js
           prerelease: ${{ github.ref_name == 'dev' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
