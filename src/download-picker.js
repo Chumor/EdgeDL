@@ -65,9 +65,9 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     // 注入下载器选择弹窗样式
     const style = document.createElement('style');
     style.textContent = `
-        #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 2147483647; pointer-events: none; }
-        #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; }
-        #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; max-width: 100%; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; pointer-events: auto; box-sizing: border-box; }
+        #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 2147483647; pointer-events: none; contain: layout style paint; isolation: isolate; }
+        #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; pointer-events: auto; }
+        #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; max-width: 100%; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; pointer-events: auto; box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-weight: 400; line-height: 1.4; -webkit-font-smoothing: antialiased; }
         #edgedl-picker h3 { margin: 0 0 16px 0; font-weight: 500; font-size: 16px; }
         #edgedl-picker .edgedl-options { display: flex; flex-direction: column; width: 100%; gap: 12px; }
         #edgedl-picker .edgedl-options button { display: flex; align-items: center; gap: 10px; padding: 10px; border: none; border-radius: 12px; background: #f2f2f2; font-weight: 500; cursor: pointer; transition: background 0.2s; }
