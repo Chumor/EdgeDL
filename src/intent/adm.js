@@ -9,9 +9,6 @@ export async function openADM(url) {
     const intentUrl = `intent://${cleanLink}#Intent;scheme=${scheme};package=${DOWNLOADERS.ADM};type=*/*;end`;
     window.location.href = intentUrl;
     setTimeout(() => {
-        window.location.href = 'about:blank';
-        setTimeout(() => {
-            window.location.href = intentUrl;
-        }, 100);
+        window.location.href = intentUrl;
     }, 200);
 }
