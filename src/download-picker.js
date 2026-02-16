@@ -108,7 +108,7 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     `;
     document.head.appendChild(style);
 
-    // 读取默认下载器（GM 储存）
+    // 读取默认下载器
     const defaultDownloader = await GM_getValue(DEFAULT_KEY, null);
     const defaultCheckbox = picker.querySelector('#edgedl-set-default');
 

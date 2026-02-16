@@ -11,6 +11,9 @@ function getDefaultDownloader() {
 
 // 全局点击拦截下载
 document.addEventListener('click', e => {
+   if (e.__edgedl_handled__) return;
+    e.__edgedl_handled__ = true;
+
     let target = e.target;
     while (target && target.tagName !== 'A') target = target.parentElement;
     if (!target) return;
