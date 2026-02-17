@@ -8,4 +8,7 @@ export async function openADM(url) {
     const cleanLink = url.replace(/^https?:\/\//, '');
     const intentUrl = `intent://${cleanLink}#Intent;scheme=${scheme};package=${DOWNLOADERS.ADM};type=*/*;end`;
     window.location.href = intentUrl;
+    setTimeout(() => {
+        window.location.href = intentUrl;
+    }, 200);
 }

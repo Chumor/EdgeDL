@@ -4,29 +4,36 @@ import { showDownloadPicker } from './download-picker.js';
 import { registerMenu } from './menu.js';
 registerMenu();
 
-// 获取当前默认下载器
+// 读取默认下载器配置
 function getDefaultDownloader() {
     return GM_getValue('edgedl-default-downloader');
 }
 
-// 全局点击拦截下载
+// 拦截点击事件并接管下载
 document.addEventListener('click', e => {
-    let target = e.target;
-    while (target && target.tagName !== 'A') target = target.parentElement;
-    if (!target) return;
+    if (e.defaultPrevented) return;
 
-    const url = target.href;
-    if (isDownloadLink(url)) {
-        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    if (e.__edgedl_handled__) return;
+    e.__edgedl_handled__ = true;
 
-        const defaultDownloader = getDefaultDownloader();
-        if (defaultDownloader) {
-            openDownload(url, defaultDownloader);
-        } else {
-            // 弹出下载选择器
-            showDownloadPicker(url, selected => {
-                openDownload(url, selected);
-            });
-        }
+    const link = e.target?.closest?.('a');
+    if (!link || !link.href) return;
+
+    const url = link.href;
+    if (!isDownloadLink(url)) return;
+
+    // 阻止浏览器原生下载与页面跳转
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    const defaultDownloader = getDefaultDownloader();
+    if (defaultDownloader) {
+        openDownload(url, defaultDownloader);
+    } else {
+        // 无默认配置时弹出下载器选择
+        showDownloadPicker(url, selected => {
+            openDownload(url, selected);
+        });
     }
 }, true);

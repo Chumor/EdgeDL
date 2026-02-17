@@ -26,7 +26,7 @@ export async function openDownload(url, downloader) {
         case 'edge':
         default:
             showToast('⚡ Edge 内置下载');
-            window.open(url, '_blank');
+            GM_download({ url, saveAs: false });
             break;
     }
 }
