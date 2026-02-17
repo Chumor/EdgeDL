@@ -56,15 +56,6 @@ jobs:
 
           echo "version=$VER" >> $GITHUB_OUTPUT
 
-      - name: Commit dist (main only)
-        if: github.ref_name == 'main'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f dist
-          git diff --cached --quiet || git commit -m "chore(dist): update build artifacts"
-          git push origin main
-
       - name: Create GitHub Release
         if: |
           github.ref_name == 'main' ||
