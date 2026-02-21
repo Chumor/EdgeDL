@@ -33,10 +33,9 @@ jobs:
             | sed -E 's/.*@version[[:space:]]+([0-9.]+).*/\1/')
 
           SHORT_SHA=$(git rev-parse --short HEAD)
-
           FULL_VERSION="${BASE_VERSION}-dev+${SHORT_SHA}"
 
-          sed -i -E "s@// @version[[:space:]]+.*@// @version      ${FULL_VERSION}@" dist/EdgeDL.user.js
+          sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${FULL_VERSION}|" dist/EdgeDL.user.js
 
           echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
 
@@ -51,7 +50,6 @@ jobs:
           fi
 
           NAME="EdgeDL-build-${VERSION}"
-
           echo "name=$NAME" >> $GITHUB_OUTPUT
 
       - name: Upload build artifact
