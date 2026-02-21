@@ -1,6 +1,7 @@
 import { isDownloadLink } from './detector.js';
 import { openDownload } from './intent/factory.js';
 import { showDownloadPicker } from './download-picker.js';
+import { extractUrlFromOnclick } from './utils.js';
 import { registerMenu } from './menu.js';
 registerMenu();
 
@@ -16,11 +17,26 @@ document.addEventListener('click', e => {
     if (e.__edgedl_handled__) return;
     e.__edgedl_handled__ = true;
 
-    const link = e.target?.closest?.('a');
-    if (!link || !link.href) return;
+    const link = e.target?.closest?.('a, [onclick]');
+    if (!link) return;
 
-    const url = link.href;
-    if (!isDownloadLink(url)) return;
+    let url = link.href;
+
+    if (
+        !url ||
+        url === '#' ||
+        url === '##' ||
+        url.startsWith('javascript:')
+    ) {
+        const onclick = link.getAttribute('onclick')
+            || link.closest('[onclick]')?.getAttribute('onclick');
+
+        if (onclick) {
+            url = extractUrlFromOnclick(onclick);
+        }
+    }
+
+    if (!url || !isDownloadLink(url)) return;
 
     // 阻止浏览器原生下载与页面跳转
     e.preventDefault();
