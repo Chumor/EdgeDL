@@ -29,14 +29,14 @@ jobs:
         if: github.ref_name == 'dev'
         id: inject
         run: |
-          BASE_VERSION=$(grep -E "@version\s+[0-9.]" rollup.config.js \
-            | sed -E "s/.*@version\s+([0-9.]+).*/\1/")
+          BASE_VERSION=$(grep -E "@version[[:space:]]+[0-9.]+" rollup.config.js \
+            | sed -E 's/.*@version[[:space:]]+([0-9.]+).*/\1/')
 
           SHORT_SHA=$(git rev-parse --short HEAD)
 
           FULL_VERSION="${BASE_VERSION}-dev+${SHORT_SHA}"
 
-          sed -i -E "s@// @version\s+.*@// @version      ${FULL_VERSION}@" dist/EdgeDL.user.js
+          sed -i -E "s@// @version[[:space:]]+.*@// @version      ${FULL_VERSION}@" dist/EdgeDL.user.js
 
           echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
 
@@ -44,17 +44,13 @@ jobs:
         id: artifact
         run: |
           if [ -n "${{ steps.inject.outputs.full_version }}" ]; then
-            VERSION=${{ steps.inject.outputs.full_version }}
+            VERSION="${{ steps.inject.outputs.full_version }}"
           else
-            VERSION=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
+            VERSION=$(grep -E "@version[[:space:]]+[0-9.]+" rollup.config.js \
+              | sed -E 's/.*@version[[:space:]]+([0-9.]+).*/\1/')
           fi
-          SHORT_SHA=$(git rev-parse --short HEAD)
 
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            NAME="EdgeDL-build-v${VERSION}"
-          else
-            NAME="EdgeDL-build-${VERSION}"
-          fi
+          NAME="EdgeDL-build-${VERSION}"
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
 
