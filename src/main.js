@@ -17,6 +17,8 @@ document.addEventListener('click', e => {
     if (e.__edgedl_handled__) return;
     e.__edgedl_handled__ = true;
 
+    if (e.target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
+
     const link = e.target?.closest?.('a, [onclick]');
     if (!link) return;
 
