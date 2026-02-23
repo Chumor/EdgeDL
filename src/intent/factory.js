@@ -8,14 +8,14 @@ import { isCurrentSiteBlacklisted } from '../blacklist.js';
 export async function openDownload(url, downloader) {
     if (await isCurrentSiteBlacklisted()) { showToast('黑名单：下载已阻止'); return; }
     switch (downloader) {
-        case 'idm.internet.download.manager':
-            showToast('⚡ 1DM 正在唤起');
-            openIDM(url, 'idm.internet.download.manager');
+        case DOWNLOADERS.IDM:
+            showToast('⚡ IDM 正在唤起');
+            openIDM(url, DOWNLOADERS.IDM);
             break;
 
-        case DOWNLOADERS.IDM:
-            showToast('⚡ 1DM+ 正在唤起');
-            openIDM(url, DOWNLOADERS.IDM);
+        case DOWNLOADERS.IDM_PLUS:
+            showToast('⚡ IDM+ 正在唤起');
+            openIDM(url, DOWNLOADERS.IDM_PLUS);
             break;
 
         case DOWNLOADERS.ADM:

@@ -1,6 +1,7 @@
 // 下载器用户配置
 export const DOWNLOADERS = {
-    IDM: 'idm.internet.download.manager.plus',
+    IDM: 'idm.internet.download.manager',
+    IDM_PLUS: 'idm.internet.download.manager.plus',
     ADM: 'com.dv.adm',
 };
 
