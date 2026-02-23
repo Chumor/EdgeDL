@@ -1,5 +1,6 @@
 import { openIDM } from './idm.js';
 import { openADM } from './adm.js';
+import { openABDM } from './abdm.js';
 import { DOWNLOADERS } from '../config.js';
 import { showToast } from '../toast.js';
 import { isCurrentSiteBlacklisted } from '../blacklist.js';
@@ -21,6 +22,11 @@ export async function openDownload(url, downloader) {
         case DOWNLOADERS.ADM:
             showToast('⚡ ADM 正在唤起');
             openADM(url);
+            break;
+
+        case DOWNLOADERS.ABDM:
+            showToast('⚡ AB Download Manager 正在唤起');
+            openABDM(url);
             break;
 
         case 'edge':

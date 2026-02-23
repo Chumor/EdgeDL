@@ -1,5 +1,6 @@
 import { openIDM } from './intent/idm.js';
 import { openADM } from './intent/adm.js';
+import { openABDM } from './intent/abdm.js';
 import { DOWNLOADERS } from './config.js';
 import { showToast } from './toast.js';
 import { downloaderIcons } from './icons.js';
@@ -21,6 +22,7 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     const idmIcon = downloaderIcons.IDM;
     const idmPlusIcon = downloaderIcons.IDM_PLUS;
     const admIcon = downloaderIcons.ADM;
+    const abdmIcon = downloaderIcons.ABDM;
     const edgeIcon = downloaderIcons.EDGE;
 
     const picker = document.createElement('div');
@@ -38,6 +40,9 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
                 </button>
                 <button data-pkg="${DOWNLOADERS.ADM}">
                     <img src="${admIcon}" /> ADM
+                </button>
+                <button data-pkg="${DOWNLOADERS.ABDM}">
+                    <img src="${abdmIcon}" /> ABDM
                 </button>
                 <button data-pkg="edge">
                     <img src="${edgeIcon}" /> Edge
@@ -157,6 +162,10 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
                 case DOWNLOADERS.ADM:
                     showToast('⚡ ADM 正在唤起');
                     openADM(url);
+                    break;
+                case DOWNLOADERS.ABDM:
+                    showToast('⚡ AB Download Manager 正在唤起');
+                    openABDM(url);
                     break;
                 default:
                     showToast('⚡ Edge 内置下载');

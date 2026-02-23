@@ -3,6 +3,7 @@ export const DOWNLOADERS = {
     IDM: 'idm.internet.download.manager',
     IDM_PLUS: 'idm.internet.download.manager.plus',
     ADM: 'com.dv.adm',
+    ABDM: 'com.abdownloadmanager',
 };
 
 // 默认下载器
