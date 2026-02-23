@@ -1,4 +1,4 @@
-import { selectedDownloader, DOWNLOADERS } from './config.js';
+import { selectedDownloader, DOWNLOADERS } from '../core/config.js';
 
 export function showToast(message, duration = 1500) {
     try {

@@ -1,5 +1,5 @@
-import { showDownloadPicker } from '../download-picker.js';
-import { openDownload } from '../intent/factory.js';
+import { showDownloadPicker } from '../components/download-picker.js';
+import { openDownload } from '../adapter/factory.js';
 
 export function initSjqqHandler() {
     if (location.hostname !== 'sj.qq.com') return;

@@ -1,8 +1,8 @@
-import { openDownload } from './intent/factory.js';
-import { DOWNLOADERS } from './config.js';
+import { openDownload } from '../adapter/factory.js';
+import { DOWNLOADERS } from '../core/config.js';
 import { showToast } from './toast.js';
-import { downloaderIcons } from './icons.js';
-import { isCurrentSiteBlacklisted } from './blacklist.js';
+import { downloaderIcons } from './assets/icons.js';
+import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
 
 const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
@@ -10,13 +10,6 @@ const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 export async function showDownloadPicker(url, callback, mode = 'download') {
     if (document.getElementById('edgedl-picker')) return;
     
-    if (mode !== 'config' && await isCurrentSiteBlacklisted()) {
-        showToast('🚫 当前站点在黑名单中');
-        window.open(url, '_blank');
-        if (typeof callback === 'function') callback('edge');
-        return;
-    }
-
     const idmIcon = downloaderIcons.IDM;
     const idmPlusIcon = downloaderIcons.IDM_PLUS;
     const admIcon = downloaderIcons.ADM;

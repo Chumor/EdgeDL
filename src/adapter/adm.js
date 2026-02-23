@@ -1,6 +1,6 @@
-import { DOWNLOADERS } from '../config.js';
-import { showToast } from '../toast.js';
-import { isCurrentSiteBlacklisted } from '../blacklist.js';
+import { DOWNLOADERS } from '../core/config.js';
+import { showToast } from '../components/toast.js';
+import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
 
 export async function openADM(url) {
     if (await isCurrentSiteBlacklisted()) { showToast('黑名单：下载已阻止'); return; }

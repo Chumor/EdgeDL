@@ -1,5 +1,5 @@
-import { showToast } from '../toast.js';
-import { isCurrentSiteBlacklisted } from '../blacklist.js';
+import { showToast } from '../components/toast.js';
+import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
 
 const ABDM_PKG = 'com.abdownloadmanager';
 

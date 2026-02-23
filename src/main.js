@@ -1,9 +1,9 @@
-import { isDownloadLink } from './detector.js';
-import { openDownload } from './intent/factory.js';
-import { showDownloadPicker } from './download-picker.js';
+import { isDownloadLink } from './core/detector.js';
+import { openDownload } from './adapter/factory.js';
+import { showDownloadPicker } from './components/download-picker.js';
 import { initSjqqHandler } from './handlers/sjqq.js';
 import { extractUrlFromOnclick } from './utils.js';
-import { registerMenu } from './menu.js';
+import { registerMenu } from './components/menu.js';
 
 // 读取默认下载器配置
 function getDefaultDownloader() {
