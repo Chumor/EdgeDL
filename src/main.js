@@ -1,6 +1,7 @@
 import { isDownloadLink } from './detector.js';
 import { openDownload } from './intent/factory.js';
 import { showDownloadPicker } from './download-picker.js';
+import { initSjqqHandler } from './handlers/sjqq.js';
 import { extractUrlFromOnclick } from './utils.js';
 import { registerMenu } from './menu.js';
 registerMenu();
@@ -9,6 +10,9 @@ registerMenu();
 function getDefaultDownloader() {
     return GM_getValue('edgedl-default-downloader');
 }
+
+// 初始化应用宝下载接管
+initSjqqHandler();
 
 // 拦截点击事件并接管下载
 document.addEventListener('click', e => {
