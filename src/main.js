@@ -4,20 +4,27 @@ import { showDownloadPicker } from './download-picker.js';
 import { initSjqqHandler } from './handlers/sjqq.js';
 import { extractUrlFromOnclick } from './utils.js';
 import { registerMenu } from './menu.js';
-registerMenu();
 
 // 读取默认下载器配置
 function getDefaultDownloader() {
     return GM_getValue('edgedl-default-downloader');
 }
 
-// 初始化应用宝下载接管
-initSjqqHandler();
+// 初始化下载接管
+function init() {
+    registerMenu();
+    initSjqqHandler();
+    attachClickInterceptor();
+}
 
-// 拦截点击事件并接管下载
-document.addEventListener('click', e => {
+// 挂载点击拦截器
+function attachClickInterceptor() {
+    document.addEventListener('click', handleClick, true);
+}
+
+// 点击事件处理
+async function handleClick(e) {
     if (e.defaultPrevented) return;
-
     if (e.__edgedl_handled__) return;
     e.__edgedl_handled__ = true;
 
@@ -49,13 +56,18 @@ document.addEventListener('click', e => {
     e.stopPropagation();
     e.stopImmediatePropagation();
 
-    const defaultDownloader = getDefaultDownloader();
+    const defaultDownloader = await getDefaultDownloader();
+
     if (defaultDownloader) {
-        openDownload(url, defaultDownloader);
-    } else {
-        // 无默认配置时弹出下载器选择
-        showDownloadPicker(url, selected => {
-            openDownload(url, selected);
-        });
+        await openDownload(url, defaultDownloader);
+        return;
     }
-}, true);
+
+    // 无默认下载器时弹出选择器
+    const selected = await showDownloadPicker(url);
+    if (selected) {
+        await openDownload(url, selected);
+    }
+}
+ 
+init();
