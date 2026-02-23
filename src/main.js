@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { isDownloadLink } from './core/detector.js';
 import { openDownload } from './adapter/factory.js';
 import { showDownloadPicker } from './components/download-picker.js';
@@ -29,17 +28,11 @@ async function handleClick(e) {
     if (e.__edgedl_handled__) return;
     e.__edgedl_handled__ = true;
 
-<<<<<<< HEAD
     if (e.target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
 
     const link = e.target?.closest?.('a, [onclick]');
     if (!link) return;
 
-=======
-    const link = e.target?.closest?.('a, [onclick]');
-    if (!link) return;
-
->>>>>>> origin/main
     let url = link.href;
 
     if (
