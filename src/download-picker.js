@@ -142,11 +142,21 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
             // 若复选框已勾选或之前标记为“待设置”，保存为默认
+            if (mode === 'config') {
+                await GM_setValue(DEFAULT_KEY, pkg);
+                await GM_deleteValue(DEFAULT_PENDING_KEY);
+            }
             if (pkg === 'edge') {
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
             } else if (defaultCheckbox.checked || pending) {
                 await GM_setValue(DEFAULT_KEY, pkg);
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
+            }
+
+            if (mode === 'config') {
+                if (typeof callback === 'function') callback(pkg);
+                gotoClose();
+                return;
             }
 
             // 调用回调唤起下载器
@@ -188,17 +198,20 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
         });
     });
 
-    // 点击背景关闭
-    picker.querySelector('.edgedl-bg').addEventListener('click', () => {
+    function gotoClose() {
         picker.classList.add('closing');
         picker.addEventListener('animationend', () => {
-           if (window.visualViewport) {
+            if (window.visualViewport) {
                 visualViewport.removeEventListener('resize', layoutPicker);
                 visualViewport.removeEventListener('scroll', layoutPicker);
             }
-            picker.remove();
-            style.remove();
+            picker.remove(); style.remove();
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         }, { once: true });
+    }
+
+    // 点击背景关闭
+    picker.querySelector('.edgedl-bg').addEventListener('click', () => {
+        gotoClose();
     });
 }
