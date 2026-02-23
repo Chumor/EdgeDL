@@ -1,6 +1,4 @@
-import { openIDM } from './intent/idm.js';
-import { openADM } from './intent/adm.js';
-import { openABDM } from './intent/abdm.js';
+import { openDownload } from './intent/factory.js';
 import { DOWNLOADERS } from './config.js';
 import { showToast } from './toast.js';
 import { downloaderIcons } from './icons.js';
@@ -159,34 +157,13 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
                 return;
             }
 
-            // 调用回调唤起下载器
-            switch (pkg) {
-                case DOWNLOADERS.IDM:
-                    showToast('⚡ 1DM 正在唤起');
-                    openIDM(url, DOWNLOADERS.IDM);
-                    break;
-                case DOWNLOADERS.IDM_PLUS:
-                    showToast('⚡ 1DM+ 正在唤起');
-                    openIDM(url, DOWNLOADERS.IDM_PLUS);
-                    break;
-                case DOWNLOADERS.ADM:
-                    showToast('⚡ ADM 正在唤起');
-                    openADM(url);
-                    break;
-                case DOWNLOADERS.ABDM:
-                    showToast('⚡ AB Download Manager 正在唤起');
-                    openABDM(url);
-                    break;
-                default:
-                    showToast('⚡ Edge 内置下载');
-                    window.open(url, '_blank');
-            }
-
             if (typeof callback === 'function') callback(pkg);
+
+            openDownload(url, pkg);
 
             picker.classList.add('closing');
             picker.addEventListener('animationend', () => {
-               if (window.visualViewport) {
+                if (window.visualViewport) {
                     visualViewport.removeEventListener('resize', layoutPicker);
                     visualViewport.removeEventListener('scroll', layoutPicker);
                 }

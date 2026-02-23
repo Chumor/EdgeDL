@@ -32,7 +32,9 @@ export async function openDownload(url, downloader) {
         case 'edge':
         default:
             showToast('⚡ Edge 内置下载');
-            GM_download({ url, saveAs: false });
+            setTimeout(() => {
+                window.location.href = url;
+            }, 0);
             break;
     }
 }
