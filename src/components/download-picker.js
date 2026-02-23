@@ -1,9 +1,8 @@
-import { openIDM } from './intent/idm.js';
-import { openADM } from './intent/adm.js';
-import { DOWNLOADERS } from './config.js';
+import { openDownload } from '../adapter/factory.js';
+import { DOWNLOADERS } from '../core/config.js';
 import { showToast } from './toast.js';
-import { downloaderIcons } from './icons.js';
-import { isCurrentSiteBlacklisted } from './blacklist.js';
+import { downloaderIcons } from './assets/icons.js';
+import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
 
 const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
@@ -11,16 +10,10 @@ const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 export async function showDownloadPicker(url, callback, mode = 'download') {
     if (document.getElementById('edgedl-picker')) return;
     
-    if (mode !== 'config' && await isCurrentSiteBlacklisted()) {
-        showToast('🚫 当前站点在黑名单中');
-        window.open(url, '_blank');
-        if (typeof callback === 'function') callback('edge');
-        return;
-    }
-
     const idmIcon = downloaderIcons.IDM;
     const idmPlusIcon = downloaderIcons.IDM_PLUS;
     const admIcon = downloaderIcons.ADM;
+    const abdmIcon = downloaderIcons.ABDM;
     const edgeIcon = downloaderIcons.EDGE;
 
     const picker = document.createElement('div');
@@ -38,6 +31,9 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
                 </button>
                 <button data-pkg="${DOWNLOADERS.ADM}">
                     <img src="${admIcon}" /> ADM
+                </button>
+                <button data-pkg="${DOWNLOADERS.ABDM}">
+                    <img src="${abdmIcon}" /> ABDM
                 </button>
                 <button data-pkg="edge">
                     <img src="${edgeIcon}" /> Edge
@@ -137,6 +133,10 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
             // 若复选框已勾选或之前标记为“待设置”，保存为默认
+            if (mode === 'config') {
+                await GM_setValue(DEFAULT_KEY, pkg);
+                await GM_deleteValue(DEFAULT_PENDING_KEY);
+            }
             if (pkg === 'edge') {
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
             } else if (defaultCheckbox.checked || pending) {
@@ -144,30 +144,19 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
             }
 
-            // 调用回调唤起下载器
-            switch (pkg) {
-                case DOWNLOADERS.IDM:
-                    showToast('⚡ 1DM 正在唤起');
-                    openIDM(url, DOWNLOADERS.IDM);
-                    break;
-                case DOWNLOADERS.IDM_PLUS:
-                    showToast('⚡ 1DM+ 正在唤起');
-                    openIDM(url, DOWNLOADERS.IDM_PLUS);
-                    break;
-                case DOWNLOADERS.ADM:
-                    showToast('⚡ ADM 正在唤起');
-                    openADM(url);
-                    break;
-                default:
-                    showToast('⚡ Edge 内置下载');
-                    window.open(url, '_blank');
+            if (mode === 'config') {
+                if (typeof callback === 'function') callback(pkg);
+                gotoClose();
+                return;
             }
 
             if (typeof callback === 'function') callback(pkg);
 
+            openDownload(url, pkg);
+
             picker.classList.add('closing');
             picker.addEventListener('animationend', () => {
-               if (window.visualViewport) {
+                if (window.visualViewport) {
                     visualViewport.removeEventListener('resize', layoutPicker);
                     visualViewport.removeEventListener('scroll', layoutPicker);
                 }
@@ -179,17 +168,20 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
         });
     });
 
-    // 点击背景关闭
-    picker.querySelector('.edgedl-bg').addEventListener('click', () => {
+    function gotoClose() {
         picker.classList.add('closing');
         picker.addEventListener('animationend', () => {
-           if (window.visualViewport) {
+            if (window.visualViewport) {
                 visualViewport.removeEventListener('resize', layoutPicker);
                 visualViewport.removeEventListener('scroll', layoutPicker);
             }
-            picker.remove();
-            style.remove();
+            picker.remove(); style.remove();
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         }, { once: true });
+    }
+
+    // 点击背景关闭
+    picker.querySelector('.edgedl-bg').addEventListener('click', () => {
+        gotoClose();
     });
 }

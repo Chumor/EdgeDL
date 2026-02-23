@@ -1,22 +1,31 @@
 // 下载器用户配置
 export const DOWNLOADERS = {
-    IDM: 'idm.internet.download.manager.plus',
+    IDM: 'idm.internet.download.manager',
+    IDM_PLUS: 'idm.internet.download.manager.plus',
     ADM: 'com.dv.adm',
+    ABDM: 'com.abdownloadmanager',
 };
 
 // 默认下载器
-export let selectedDownloader = GM_getValue('edgedl-default-downloader') || DOWNLOADERS.IDM;
+export const DEFAULT_DOWNLOADER_KEY = 'edgedl-default-downloader';
+export const DEFAULT_DOWNLOADER = DOWNLOADERS.IDM;
+
+// 当前选中的下载器
+export let selectedDownloader = GM_getValue(
+    DEFAULT_DOWNLOADER_KEY,
+    DEFAULT_DOWNLOADER
+);
 
 // 设置默认下载器
 export function setDefaultDownloader(pkg) {
     selectedDownloader = pkg;
-    GM_setValue('edgedl-default-downloader', pkg);
+    GM_setValue(DEFAULT_DOWNLOADER_KEY, pkg);
 }
 
 // 重置默认下载器
 export function resetDefaultDownloader() {
-    selectedDownloader = DOWNLOADERS.IDM;
-    GM_deleteValue('edgedl-default-downloader');
+    selectedDownloader = DEFAULT_DOWNLOADER;
+    GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
 }
 
 // 下载链接关键字匹配

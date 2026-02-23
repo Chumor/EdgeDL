@@ -1,4 +1,4 @@
-import { selectedDownloader, DOWNLOADERS } from './config.js';
+import { selectedDownloader, DOWNLOADERS } from '../core/config.js';
 
 export function showToast(message, duration = 1500) {
     try {
@@ -18,6 +18,7 @@ export function showToast(message, duration = 1500) {
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
+            white-space: nowrap;
         `;
 
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {

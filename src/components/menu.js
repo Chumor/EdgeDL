@@ -1,5 +1,5 @@
 import { showDownloadPicker } from './download-picker.js';
-import { toggleCurrentSite } from './blacklist.js';
+import { toggleCurrentSite } from '../core/blacklist.js';
 
 let menuRegistered = false;
 
