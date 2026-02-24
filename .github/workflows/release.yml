@@ -55,7 +55,7 @@ jobs:
       - name: Resolve Base Version
         id: base
         run: |
-          echo "base=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+          echo "base=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_OUTPUT
 
       - name: Resolve Channel Version
         id: version
