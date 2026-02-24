@@ -10,11 +10,6 @@ on:
         type: choice
         options: ["true", "false"]
 
-  push:
-    branches:
-      - dev
-      - main
-
   pull_request:
     types: [closed]
     branches:
@@ -28,7 +23,6 @@ concurrency:
 jobs:
   release:
     if: |
-      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.merged == true
 
@@ -44,6 +38,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/setup-node@v4
         with:
@@ -55,7 +50,8 @@ jobs:
       - name: Resolve Base Version
         id: base
         run: |
-          echo "base=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_OUTPUT
+          BASE=$(node -p "require('./package.json').version")
+          echo "base=$BASE" >> $GITHUB_OUTPUT
 
       - name: Resolve Channel Version
         id: version
@@ -96,10 +92,14 @@ jobs:
           { print }
           END {
             if (!found) print "// @version " ver
-          }' dist/EdgeDL.user.js > dist/EdgeDL.tmp && mv dist/EdgeDL.tmp dist/EdgeDL.user.js
+          }' dist/EdgeDL.user.js > dist/EdgeDL.tmp \
+          && mv dist/EdgeDL.tmp dist/EdgeDL.user.js
 
       - name: Create Release
-        if: github.event.inputs.publish == 'true' || github.event.pull_request.merged == true || github.event_name == 'push'
+        if: |
+          github.event.inputs.publish == 'true' ||
+          github.event.pull_request.merged == true
+
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
