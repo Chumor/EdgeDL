@@ -1,6 +1,6 @@
 {
   "name": "edgedl",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "EdgeDL：让 Android Edge 浏览器使用外部下载器下载文件",
   "author": "Chumor",
   "license": "Apache-2.0",
