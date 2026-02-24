@@ -4,30 +4,46 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: '是否创建 Pre-release（dev 分支）'
+        description: "是否创建 Release"
         required: true
-        default: 'false'
+        default: "false"
         type: choice
-        options: ['true', 'false']
+        options: ["true", "false"]
+
+  push:
+    branches:
+      - dev
+      - main
 
   pull_request:
     types: [closed]
-    branches: [main]
+    branches:
+      - dev
+      - main
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   release:
     if: |
+      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      (
-        github.event.pull_request.merged == true &&
-        startsWith(github.event.pull_request.title, 'release:')
-      )
+      github.event.pull_request.merged == true
+
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
+    env:
+      MIN_RELEASE_COMMITS: 3
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -36,37 +52,58 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - name: Resolve version
+      - name: Resolve Base Version
+        id: base
+        run: |
+          echo "base=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+
+      - name: Resolve Channel Version
         id: version
         run: |
-          BASE=$(head -n 20 dist/EdgeDL.user.js | grep '@version' | sed -E 's/.*@version\s+([0-9.]+).*/\1/')
+          BASE="${{ steps.base.outputs.base }}"
+          SHA=$(git rev-parse --short HEAD)
 
-          if [ "${{ github.ref_name }}" = "dev" ]; then
-            git fetch --tags
+          git fetch --tags
+
+          if [ "${GITHUB_REF_NAME}" = "dev" ]; then
             LAST=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
+
             if [ -z "$LAST" ]; then
-              VER="${BASE}-beta.1"
+              N=0
             else
-              N=$(echo "$LAST" | sed -E 's/.*-beta\.([0-9]+)/\1/')
-              VER="${BASE}-beta.$((N + 1))"
+              N=$(echo "$LAST" | sed -E 's/.*-beta\.([0-9]+).*/\1/')
             fi
+
+            VERSION="${BASE}-beta.$((N + 1))+${SHA}"
+            PRERELEASE=true
           else
-            VER="$BASE"
+            VERSION="${BASE}"
+            PRERELEASE=false
           fi
 
-          echo "version=$VER" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        if: |
-          github.ref_name == 'main' ||
-          (
-            github.ref_name == 'dev' &&
-            github.event_name == 'workflow_dispatch' &&
-            github.event.inputs.publish == 'true'
-          )
+      - name: Inject Version Header
+        run: |
+          awk -v ver="${{ steps.version.outputs.version }}" '
+          BEGIN { found=0 }
+          /@version/ {
+            print "// @version " ver
+            found=1
+            next
+          }
+          { print }
+          END {
+            if (!found) print "// @version " ver
+          }' dist/EdgeDL.user.js > dist/EdgeDL.tmp && mv dist/EdgeDL.tmp dist/EdgeDL.user.js
+
+      - name: Create Release
+        if: github.event.inputs.publish == 'true' || github.event.pull_request.merged == true || github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
           files: dist/EdgeDL.user.js
-          prerelease: ${{ github.ref_name == 'dev' }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          generate_release_notes: true
