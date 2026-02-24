@@ -1,9 +1,9 @@
 import { isDownloadLink } from './core/detector.js';
-import { openDownload } from './adapter/factory.js';
-import { showDownloadPicker } from './components/download-picker.js';
-import { initSjqqHandler } from './handlers/sjqq.js';
 import { extractUrlFromOnclick } from './utils.js';
+import { requestDownload } from './core/download.js';
 import { registerMenu } from './components/menu.js';
+import { initSjqqHandler } from './handlers/sjqq.js';
+import { initDeepSeekHandler } from './handlers/deepseek.js';
 
 // 读取默认下载器配置
 function getDefaultDownloader() {
@@ -14,6 +14,7 @@ function getDefaultDownloader() {
 function init() {
     registerMenu();
     initSjqqHandler();
+    initDeepSeekHandler();
     attachClickInterceptor();
 }
 
@@ -56,18 +57,7 @@ async function handleClick(e) {
     e.stopPropagation();
     e.stopImmediatePropagation();
 
-    const defaultDownloader = await getDefaultDownloader();
-
-    if (defaultDownloader) {
-        await openDownload(url, defaultDownloader);
-        return;
-    }
-
-    // 无默认下载器时弹出选择器
-    const selected = await showDownloadPicker(url);
-    if (selected) {
-        await openDownload(url, selected);
-    }
+    await requestDownload(url);
 }
  
 init();
