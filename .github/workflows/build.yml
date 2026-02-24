@@ -11,48 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build project
         run: npm run build
 
-      - name: Inject version for dev build
-        if: github.ref_name == 'dev'
-        id: inject
+      - name: Resolve version
+        id: version
         run: |
-          BASE_VERSION=$(grep -E "@version[[:space:]]+[0-9.]+" rollup.config.js \
-            | sed -E 's/.*@version[[:space:]]+([0-9.]+).*/\1/')
+          BASE=$(node -p "require('./package.json').version")
+          SHA=$(git rev-parse --short HEAD)
 
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          FULL_VERSION="${BASE_VERSION}-dev+${SHORT_SHA}"
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+              VERSION="${BASE}-beta.${{ github.run_number }}+${SHA}"
+          else
+              VERSION="${BASE}"
+          fi
 
-          sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${FULL_VERSION}|" dist/EdgeDL.user.js
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+      - name: Inject version header
+        run: |
+          sed -i -E "s/@version.*/@version ${{ steps.version.outputs.version }}/" dist/EdgeDL.user.js
 
       - name: Resolve artifact name
         id: artifact
         run: |
-          if [ -n "${{ steps.inject.outputs.full_version }}" ]; then
-            VERSION="${{ steps.inject.outputs.full_version }}"
-          else
-            VERSION=$(grep -E "@version[[:space:]]+[0-9.]+" rollup.config.js \
-              | sed -E 's/.*@version[[:space:]]+([0-9.]+).*/\1/')
-          fi
-
-          NAME="EdgeDL-build-${VERSION}"
+          NAME="EdgeDL-build-${{ steps.version.outputs.version }}"
           echo "name=$NAME" >> $GITHUB_OUTPUT
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact.outputs.name }}
