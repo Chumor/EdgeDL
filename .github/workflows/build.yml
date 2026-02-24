@@ -32,7 +32,17 @@ jobs:
           SHA=$(git rev-parse --short HEAD)
 
           if [ "${{ github.ref_name }}" = "dev" ]; then
-              VERSION="${BASE}-beta.${{ github.run_number }}+${SHA}"
+              git fetch --tags
+
+              LAST=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
+
+              if [ -z "$LAST" ]; then
+                  N=0
+              else
+                  N=$(echo "$LAST" | sed -E 's/.*-beta\.([0-9]+).*/\1/')
+              fi
+
+              VERSION="${BASE}-beta.$((N + 1))+${SHA}"
           else
               VERSION="${BASE}"
           fi
