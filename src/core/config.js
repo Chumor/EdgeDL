@@ -44,13 +44,11 @@ export const EXTENSIONS = [
 
 // 下载链接后缀匹配
 export const KEYWORDS = [
-    '/down/','/download/','/downloads/','/dl/','/get/','/fetch/',
+    '/down/','/download/','/downloads/','/dl/','/fetch/',
     '/files/','/file/','/attach/','/attachment/','/media/','/static/',
     '/assets/','/cdn/','/dist/','/repo/','/backup/','/upload/',
     '/releases/download/','/binary/','/pkg/',
-    '?file=','&file=','?filename=','&filename=','?f=','&f=',
+    '?file=','&file=','?filename=','&filename=',
     'download?','&download=','?download=','&download=',
-    'token=','auth_key=','download_token=','sig=','signature=',
-    'force_download','response-content-disposition=',
-    'content-disposition=attachment'
+    'force_download','response-content-disposition=','content-disposition=attachment'
 ];
