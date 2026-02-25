@@ -1,6 +1,6 @@
 {
   "name": "edgedl",
-  "version": "1.0.0",
+  "version": "1.4.1",
   "description": "EdgeDL：让 Android Edge 浏览器使用外部下载器下载文件",
   "author": "Chumor",
   "license": "Apache-2.0",
@@ -10,8 +10,8 @@
   },
   "type": "module",
   "devDependencies": {
-    "rollup": "^4.57.1",
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-commonjs": "^29.0.0"
+    "rollup": "^4.59.0"
   }
 }
