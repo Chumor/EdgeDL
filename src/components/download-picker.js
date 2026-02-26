@@ -14,6 +14,7 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     const idmPlusIcon = downloaderIcons.IDM_PLUS;
     const admIcon = downloaderIcons.ADM;
     const abdmIcon = downloaderIcons.ABDM;
+    const fdmIcon = downloaderIcons.FDM;
     const edgeIcon = downloaderIcons.EDGE;
 
     const picker = document.createElement('div');
@@ -34,6 +35,9 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
                 </button>
                 <button data-pkg="${DOWNLOADERS.ABDM}">
                     <img src="${abdmIcon}" /> ABDM
+                </button>
+                <button data-pkg="${DOWNLOADERS.FDM}">
+                    <img src="${fdmIcon}" /> FDM
                 </button>
                 <button data-pkg="edge">
                     <img src="${edgeIcon}" /> Edge

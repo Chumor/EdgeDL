@@ -1,6 +1,6 @@
 import { DOWNLOADERS } from '../core/config.js'
 
-export function openABDM(url, packageName = DOWNLOADERS.ABDM) {
+export async function openFDM(url, packageName = DOWNLOADERS.FDM) {
   const scheme = url.startsWith('https') ? 'https' : 'http'
   const cleanLink = url.replace(/^https?:\/\//, '')
   const intentUrl = `intent://${cleanLink}#Intent;scheme=${scheme};package=${packageName};type=*/*;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`

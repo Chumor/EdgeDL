@@ -4,6 +4,7 @@ export const DOWNLOADERS = {
     IDM_PLUS: 'idm.internet.download.manager.plus',
     ADM: 'com.dv.adm',
     ABDM: 'com.abdownloadmanager',
+    FDM: 'org.freedownloadmanager.fdm',
 };
 
 // 默认下载器
