@@ -1,12 +1,9 @@
 import { DOWNLOADERS } from '../core/config.js';
-import { showToast } from '../components/toast.js';
-import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
 
-export async function openADM(url) {
-    if (await isCurrentSiteBlacklisted()) { showToast('黑名单：下载已阻止'); return; }
+export function openADM(url, packageName = DOWNLOADERS.ADM) {
     const scheme = url.startsWith('https') ? 'https' : 'http';
     const cleanLink = url.replace(/^https?:\/\//, '');
-    const intentUrl = `intent://${cleanLink}#Intent;scheme=${scheme};package=${DOWNLOADERS.ADM};type=*/*;end`;
+    const intentUrl = `intent://${cleanLink}#Intent;scheme=${scheme};package=${packageName};type=*/*;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`
     window.location.href = intentUrl;
     setTimeout(() => {
         window.location.href = intentUrl;

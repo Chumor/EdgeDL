@@ -1,6 +1,7 @@
 import { openIDM } from './idm.js';
 import { openADM } from './adm.js';
 import { openABDM } from './abdm.js';
+import { openFDM } from './fdm.js'
 import { DOWNLOADERS } from '../core/config.js';
 import { showToast } from '../components/toast.js';
 import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
@@ -27,6 +28,11 @@ export async function openDownload(url, downloader) {
         case DOWNLOADERS.ABDM:
             showToast('ABDM 正在唤起');
             openABDM(url);
+            break;
+
+        case DOWNLOADERS.FDM:
+            showToast('FDM 正在唤起');
+            openFDM(url);
             break;
 
         case 'edge':
