@@ -1,0 +1,18 @@
+{
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "updateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["automerge"]
+    },
+    {
+      "updateTypes": ["major"],
+      "automerge": false,
+      "labels": ["major-update"]
+    }
+  ],
+  "timezone": "Asia/Shanghai",
+  "schedule": ["at any time"]
+}
