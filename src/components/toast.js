@@ -36,14 +36,14 @@ function injectStyle() {
 
         /* 浅色模式 */
         .edgedl-toast[data-theme="light"] {
-            background: rgba(0, 0, 0, 0.85);
+            background: #333333;
             color: #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,.25);
         }
 
         /* 深色模式 */
         .edgedl-toast[data-theme="dark"] {
-            background: #1f1f1f;
+            background: #383838;
             color: #f5f5f5;
             border: 1px solid rgba(255,255,255,.08);
             box-shadow: 0 6px 16px rgba(0,0,0,.6);
