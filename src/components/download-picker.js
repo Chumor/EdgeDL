@@ -1,5 +1,6 @@
 import { openDownload } from '../adapter/factory.js';
 import { DOWNLOADERS } from '../core/config.js';
+import { getEdgeDLVersion } from '../core/config';
 import { showToast } from './toast.js';
 import { downloaderIcons } from './assets/icons.js';
 import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
@@ -23,6 +24,7 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
         <div class="edgedl-bg"></div>
         <div class="edgedl-card">
             <h3>选择下载器</h3>
+            <div class="edgedl-version-tag">EdgeDL v${getEdgeDLVersion()}</div>
             <div class="edgedl-options">
                 <button data-pkg="${DOWNLOADERS.IDM}">
                     <img src="${idmIcon}" /> 1DM
@@ -68,7 +70,8 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
         #edgedl-picker { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 2147483647; pointer-events: none; contain: layout style paint; isolation: isolate; }
         #edgedl-picker .edgedl-bg { position: absolute; inset:0; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); animation: edgedl-fade-in .18s ease-out; pointer-events: auto; }
         #edgedl-picker .edgedl-card { position: relative; background: #fff; border-radius: 24px; padding: 20px; width: 260px; max-width: 100%; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; animation: edgedl-slide-up .22s ease-out; pointer-events: auto; box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-weight: 400; line-height: 1.4; -webkit-font-smoothing: antialiased; }
-        #edgedl-picker h3 { margin: 0 0 16px 0; font-weight: 500; font-size: 16px; }
+        #edgedl-picker h3 { margin: 8px 0 18px 0; font-weight: 600; font-size: 16px; color: #333; }
+        #edgedl-picker .edgedl-version-tag { position: absolute; top: 12px; right: 14px; font-size: 9px; font-family: ui-monospace, SFMono-Regular, monospace; color: #888; background: rgba(0,0,0,0.04); padding: 2px 8px; border-radius: 100px; font-weight: 600; letter-spacing: 0.3px; pointer-events: none; border: 1px solid rgba(0,0,0,0.02); }
         #edgedl-picker .edgedl-options { display: flex; flex-direction: column; width: 100%; gap: 12px; }
         #edgedl-picker .edgedl-options button { display: flex; align-items: center; gap: 10px; padding: 10px; border: none; border-radius: 12px; background: #F0F0F0; font-weight: 500; cursor: pointer; transition: background 0.2s; }
         #edgedl-picker .edgedl-options button:hover { background: #e0e0e0; }
