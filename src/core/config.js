@@ -11,6 +11,13 @@ export const DOWNLOADERS = {
 export const DEFAULT_DOWNLOADER_KEY = 'edgedl-default-downloader';
 export const DEFAULT_DOWNLOADER = DOWNLOADERS.IDM;
 
+// 版本信息
+export function getEdgeDLVersion() {
+    return (typeof GM_info !== 'undefined' && GM_info.script?.version) 
+        ? GM_info.script.version 
+        : 'dev';
+}
+
 // 当前选中的下载器
 export let selectedDownloader = GM_getValue(
     DEFAULT_DOWNLOADER_KEY,
