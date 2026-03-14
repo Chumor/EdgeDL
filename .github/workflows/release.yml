@@ -98,8 +98,7 @@ jobs:
       - name: Generate Changelog
         run: |
           npx -y conventional-changelog-cli -p angular \
-          -r 0 \
-          --output-unreleased \
+          -r 1 \
           --tag-prefix v \
           --pkg-version ${{ steps.version.outputs.version }} > RELEASE_NOTES.md
 
