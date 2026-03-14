@@ -95,6 +95,14 @@ jobs:
           }' dist/EdgeDL.user.js > dist/EdgeDL.tmp \
           && mv dist/EdgeDL.tmp dist/EdgeDL.user.js
 
+      - name: Generate Changelog
+        run: |
+          npx -y conventional-changelog-cli -p angular \
+          -r 0 \
+          --output-unreleased \
+          --tag-prefix v \
+          --pkg-version ${{ steps.version.outputs.version }} > RELEASE_NOTES.md
+
       - name: Create Release
         if: |
           github.event.inputs.publish == 'true' ||
@@ -104,6 +112,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
           files: dist/EdgeDL.user.js
           prerelease: ${{ steps.version.outputs.prerelease }}
-          generate_release_notes: true
+          generate_release_notes: false
