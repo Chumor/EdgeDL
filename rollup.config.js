@@ -25,6 +25,25 @@ const userscriptHeader =
 
 `;
 
+// 压缩
+const minifyAssets = () => ({
+  name: 'minify-assets',
+   renderChunk(code) {
+    const minified = code
+      // CSS
+      .replace(/`([\s\S]+?)`/g, (m, c) => 
+        ((c.includes('{') && c.includes(':')) || (c.match(/\n/g) || []).length > 3)
+          ? `\`${c.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*([{:;,])\s*/g, '$1').trim()}\``
+          : m
+      )
+      // 配置数组
+      .replace(/(const\s+(?:EXTENSIONS|KEYWORDS)\s*=\s*\[)([\s\S]+?)(\])/g, 
+        (_, head, body, tail) => `${head}${body.replace(/\s+/g, '')}${tail}`
+      );
+    return { code: minified, map: null };
+  }
+});
+
 export default {
   input: 'src/main.js',
   output: {
@@ -34,6 +53,7 @@ export default {
     banner: userscriptHeader
   },
   plugins: [
+    minifyAssets(),
     resolve(),
     commonjs()
   ]
