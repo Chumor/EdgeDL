@@ -19,8 +19,10 @@ const userscriptHeader =
 // @grant        GM_deleteValue
 // @license      Apache-2.0
 // @run-at       document-start
-// @downloadURL  https://raw.githubusercontent.com/Chumor/EdgeDL/main/dist/EdgeDL.user.js
-// @updateURL    https://raw.githubusercontent.com/Chumor/EdgeDL/main/dist/EdgeDL.user.js
+// @website      https://scriptcat.org/zh-CN/script-show-page/5391
+// @supportURL   https://github.com/Chumor/EdgeDL/issues
+// @downloadURL  https://github.com/Chumor/EdgeDL/releases/latest/download/EdgeDL.user.js
+// @updateURL    https://github.com/Chumor/EdgeDL/releases/latest/download/EdgeDL.user.js
 // ==/UserScript==
 
 `;

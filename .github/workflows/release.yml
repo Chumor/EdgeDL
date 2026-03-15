@@ -6,7 +6,7 @@ on:
       publish:
         description: "是否创建 Release"
         required: true
-        default: "false"
+        default: "true"
         type: choice
         options: ["true", "false"]
 
@@ -85,15 +85,24 @@ jobs:
           awk -v ver="${{ steps.version.outputs.version }}" '
           BEGIN { found=0 }
           /@version/ {
-            print "// @version " ver
+            printf "// @version      %s\n", ver
             found=1
             next
           }
           { print }
           END {
-            if (!found) print "// @version " ver
+            if (!found) printf "// @version      %s\n", ver
           }' dist/EdgeDL.user.js > dist/EdgeDL.tmp \
           && mv dist/EdgeDL.tmp dist/EdgeDL.user.js
+
+      - name: Generate Changelog
+        run: |
+          npx -y conventional-changelog-cli -p angular \
+          -r 1 \
+          --tag-prefix v \
+          > RELEASE_NOTES.md
+          CURRENT_TAG="v${{ steps.version.outputs.version }}"
+          git tag $CURRENT_TAG
 
       - name: Create Release
         if: |
@@ -104,6 +113,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
           files: dist/EdgeDL.user.js
           prerelease: ${{ steps.version.outputs.prerelease }}
-          generate_release_notes: true
+          generate_release_notes: false
