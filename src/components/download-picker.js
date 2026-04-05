@@ -210,15 +210,18 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     `;
     document.head.appendChild(style);
 
+    // 读取默认下载器
     const defaultDownloader = await GM_getValue(DEFAULT_KEY, null);
     const defaultCheckbox = picker.querySelector('#edgedl-set-default');
     defaultCheckbox.checked = !!defaultDownloader;
 
     if (defaultDownloader) {
+        // 高亮默认下载器按钮
         const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`);
         if (defaultBtn) defaultBtn.classList.add('selected');
     }
 
+    // 当复选框变化时立即保存或清除“待设置”标志
     defaultCheckbox.addEventListener('change', async () => {
         if (defaultCheckbox.checked) {
             await GM_setValue(DEFAULT_PENDING_KEY, true);
@@ -228,11 +231,13 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
         }
     });
 
+    // 点击唤起
     picker.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
             const pkg = btn.dataset.pkg;
             const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
+            // 若复选框已勾选或之前标记为“待设置”，保存为默认
             if (mode === 'config') {
                 await GM_setValue(DEFAULT_KEY, pkg);
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
