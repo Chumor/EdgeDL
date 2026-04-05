@@ -1,7 +1,4 @@
-import { openIDM } from './idm.js';
-import { openADM } from './adm.js';
-import { openABDM } from './abdm.js';
-import { openFDM } from './fdm.js'
+import { openDownloader } from './launcher.js';
 import { DOWNLOADERS } from '../core/config.js';
 import { showToast } from '../components/toast.js';
 import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
@@ -12,27 +9,27 @@ export async function openDownload(url, downloader) {
     switch (downloader) {
         case DOWNLOADERS.IDM:
             showToast('IDM 正在唤起');
-            openIDM(url, DOWNLOADERS.IDM);
+            openDownloader(url, 'IDM');
             break;
 
         case DOWNLOADERS.IDM_PLUS:
             showToast('IDM+ 正在唤起');
-            openIDM(url, DOWNLOADERS.IDM_PLUS);
+            openDownloader(url, 'IDM_PLUS');
             break;
 
         case DOWNLOADERS.ADM:
             showToast('ADM 正在唤起');
-            openADM(url);
+            openDownloader(url, 'ADM');
             break;
 
         case DOWNLOADERS.ABDM:
             showToast('ABDM 正在唤起');
-            openABDM(url);
+            openDownloader(url, 'ABDM');
             break;
 
         case DOWNLOADERS.FDM:
             showToast('FDM 正在唤起');
-            openFDM(url);
+            openDownloader(url, 'FDM');
             break;
 
         case 'edge':
