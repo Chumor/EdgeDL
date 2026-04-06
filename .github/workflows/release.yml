@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "是否创建 Release"
+        description: "Whether to publish a release"
         required: true
         default: "true"
         type: choice
@@ -16,15 +16,17 @@ on:
       - dev
       - main
 
+  push:
+    branches:
+      - dev
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   release:
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || github.event_name == 'push'
 
     runs-on: ubuntu-latest
 
@@ -133,11 +135,34 @@ jobs:
               > RELEASE_NOTES.md
           fi
 
-      - name: Create Release
-        if: |
-          github.event.inputs.publish == 'true' ||
-          github.event.pull_request.merged == true
+      - name: Check for New Commits
+        id: check_commits
+        run: |
+          BASE="${{ steps.base.outputs.base }}"
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          fi
 
+          git fetch --tags
+
+          if [ "$BRANCH" = "dev" ]; then
+            LAST_TAG=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
+          else
+            LAST_TAG=$(git tag -l "v${BASE}" | grep -v beta | sort -V | tail -n 1)
+          fi
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git rev-list $LAST_TAG..HEAD --count)
+          else
+            COMMITS=$(git rev-list HEAD --count)
+          fi
+
+          echo "Commits since last tag: $COMMITS"
+          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Conditional Release
+        if: steps.check_commits.outputs.commits != '0' && (github.event.inputs.publish == 'true' || github.event.pull_request.merged == true)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -146,3 +171,9 @@ jobs:
           files: dist/EdgeDL.user.js
           prerelease: ${{ steps.version.outputs.prerelease }}
           generate_release_notes: false
+
+      - name: Skip Release if No Commits
+        if: steps.check_commits.outputs.commits == '0'
+        run: |
+          echo "No new commits since last release. Skipping release."
+          exit 0
