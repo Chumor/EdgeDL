@@ -61,7 +61,6 @@ jobs:
           BASE="${{ steps.base.outputs.base }}"
           SHA=$(git rev-parse --short HEAD)
 
-          git fetch --tags
 
           BRANCH="${GITHUB_REF_NAME}"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -144,7 +143,6 @@ jobs:
             BRANCH="${{ github.event.pull_request.base.ref }}"
           fi
 
-          git fetch --tags
 
           if [ "$BRANCH" = "dev" ]; then
             LAST_TAG=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
@@ -162,7 +160,10 @@ jobs:
           echo "commits=$COMMITS" >> $GITHUB_OUTPUT
 
       - name: Conditional Release
-        if: steps.check_commits.outputs.commits != '0' && (github.event.inputs.publish == 'true' || github.event.pull_request.merged == true)
+        id: create_release
+        if: |
+          (steps.check_commits.outputs.commits >= env.MIN_RELEASE_COMMITS || github.event_name == 'workflow_dispatch') && 
+          (github.event_name == 'push' || github.event.inputs.publish == 'true' || github.event.pull_request.merged == true)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -173,15 +174,15 @@ jobs:
           generate_release_notes: false
 
       - name: Set release status and URL
-        if: steps.check_commits.outputs.commits != '0'
+        if: steps.create_release.outcome == 'success'
         run: |
           echo "RELEASE_STATUS=Generated" >> $GITHUB_ENV
           echo "RELEASE_URL=https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_ENV
 
       - name: Skip Release if No Commits
-        if: steps.check_commits.outputs.commits == '0'
+        if: steps.check_commits.outputs.commits < env.MIN_RELEASE_COMMITS && github.event_name != 'workflow_dispatch'
         run: |
-          echo "No new commits since last release. Skipping release."
+          echo "Insufficient commits (${{ steps.check_commits.outputs.commits }}/${{ env.MIN_RELEASE_COMMITS }}). Skipping."
           exit 0
 
       - name: Write release info to summary
