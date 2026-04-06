@@ -177,3 +177,29 @@ jobs:
         run: |
           echo "No new commits since last release. Skipping release."
           exit 0
+
+      - name: Write release info to summary
+        if: always()
+        run: |
+          RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          PRERELEASE="${{ steps.version.outputs.prerelease }}"
+          COMMITS="${{ steps.check_commits.outputs.commits }}"
+
+          if [ "$COMMITS" == "0" ]; then
+            STATUS="Skipped (no new commits)"
+          else
+            STATUS="Generated"
+          fi
+
+          {
+            echo "## Release Summary"
+            echo ""
+            echo "| Item                       | Details                         |"
+            echo "|:---------------------------|:--------------------------------|"
+            echo "| **Version**                | $VERSION |"
+            echo "| **Prerelease**             | $PRERELEASE |"
+            echo "| **Commits since last tag** | $COMMITS |"
+            echo "| **Release Status**         | $STATUS |"
+            echo "| **Release URL**            | [link]($RELEASE_URL) |"
+          } >> $GITHUB_STEP_SUMMARY
