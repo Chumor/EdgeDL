@@ -172,6 +172,12 @@ jobs:
           prerelease: ${{ steps.version.outputs.prerelease }}
           generate_release_notes: false
 
+      - name: Set release status and URL
+        if: steps.check_commits.outputs.commits != '0'
+        run: |
+          echo "RELEASE_STATUS=Generated" >> $GITHUB_ENV
+          echo "RELEASE_URL=https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_ENV
+
       - name: Skip Release if No Commits
         if: steps.check_commits.outputs.commits == '0'
         run: |
@@ -181,15 +187,16 @@ jobs:
       - name: Write release info to summary
         if: always()
         run: |
-          RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}"
           VERSION="${{ steps.version.outputs.version }}"
           PRERELEASE="${{ steps.version.outputs.prerelease }}"
           COMMITS="${{ steps.check_commits.outputs.commits }}"
 
-          if [ "$COMMITS" == "0" ]; then
+          if [ "${COMMITS}" == "0" ]; then
             STATUS="Skipped (no new commits)"
+            RELEASE_URL="N/A"
           else
-            STATUS="Generated"
+            STATUS="${RELEASE_STATUS:-Skipped}"
+            RELEASE_URL="${RELEASE_URL:-N/A}"
           fi
 
           {
