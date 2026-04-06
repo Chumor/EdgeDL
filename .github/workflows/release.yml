@@ -61,7 +61,14 @@ jobs:
 
           git fetch --tags
 
-          if [ "${GITHUB_REF_NAME}" = "dev" ]; then
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          fi
+
+          echo "Branch: $BRANCH"
+
+          if [ "$BRANCH" = "dev" ]; then
             LAST=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
 
             if [ -z "$LAST" ]; then
@@ -97,12 +104,34 @@ jobs:
 
       - name: Generate Changelog
         run: |
-          npx -y conventional-changelog-cli -p angular \
-          -r 1 \
-          --tag-prefix v \
-          > RELEASE_NOTES.md
-          CURRENT_TAG="v${{ steps.version.outputs.version }}"
-          git tag $CURRENT_TAG
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          fi
+
+          echo "Branch: $BRANCH"
+
+          if [ "$BRANCH" = "dev" ]; then
+            echo "Using beta tags"
+            LAST_TAG=$(git tag -l "v*-beta.*" | sort -V | tail -n 1)
+          else
+            echo "Using stable tags"
+            LAST_TAG=$(git tag -l "v[0-9]*" | grep -v beta | sort -V | tail -n 1)
+          fi
+
+          echo "Last tag: $LAST_TAG"
+
+          if [ -n "$LAST_TAG" ]; then
+            npx -y conventional-changelog-cli -p angular \
+              --from $LAST_TAG \
+              --to HEAD \
+              --tag-prefix v \
+              > RELEASE_NOTES.md
+          else
+            npx -y conventional-changelog-cli -p angular \
+              --tag-prefix v \
+              > RELEASE_NOTES.md
+          fi
 
       - name: Create Release
         if: |
