@@ -91,12 +91,16 @@ export default {
     file: 'dist/EdgeDL.user.js',
     format: 'iife',
     name: 'EdgeDL',
-    banner: userscriptHeader
+    banner: userscriptHeader,
+    extend: true
   },
   plugins: [
-    typescript({ tsconfig: './tsconfig.json' }),
-    resolve(),
+    resolve({ browser: true }),
     commonjs(),
+    typescript({ 
+      tsconfig: './tsconfig.json',
+      compilerOptions: { importHelpers: true }
+    }),
     optimizeSource()
   ]
 };

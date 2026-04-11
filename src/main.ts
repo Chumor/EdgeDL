@@ -1,5 +1,5 @@
 /**
- * @module EdgeDL/Main
+ * @module main
  * @description EdgeDL 核心分发器：处理全局初始化、油猴菜单注册及全局点击事件拦截。
  */
 import { isDownloadLink } from './core/detector';

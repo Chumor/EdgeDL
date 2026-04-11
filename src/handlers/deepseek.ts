@@ -1,3 +1,7 @@
+/**
+ * @module handlers/deepseek
+ * @description DeepSeek 专项处理
+ */
 import { requestDownload } from '../core/download';
 
 export function initDeepSeekHandler() {

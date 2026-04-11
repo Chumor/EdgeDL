@@ -1,3 +1,7 @@
+/**
+ * @module components/menu
+ * @description 脚本菜单管理器：负责集成油猴原生菜单指令，提供配置入口及黑名单管理接口。
+ */
 import { showDownloadPicker } from './download-picker';
 import { toggleCurrentSite } from '../core/blacklist';
 

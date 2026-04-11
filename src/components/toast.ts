@@ -1,4 +1,7 @@
-
+/**
+ * @module components/toast
+ * @description 轻量级反馈系统：提供非侵入式的状态通知，支持系统级主题自适应及生命周期管理。
+ */
 let styleInjected = false;
 let activeToast: HTMLElement | null = null;
 
@@ -70,7 +73,10 @@ function injectStyle() {
     document.head.appendChild(style);
 }
 
-// 获取当前深色或浅色主题
+/**
+ * 系统主题探测
+ * @returns {'dark' | 'light'} 当前系统主题模式
+ */
 function getTheme() {
     return window.matchMedia &&
         window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -78,7 +84,19 @@ function getTheme() {
         : 'light';
 }
 
-// 显示 toast
+/**
+ * 渲染全局反馈通知 (Toast)
+ * @description 
+ * 核心调度逻辑：
+ * 1. 样式单例校验：执行 CSS 延迟注入。
+ * 2. 状态锁定：执行存量实例回收，确保全局单例显示。
+ * 3. 视觉特征同步：构造 DOM 实体并适配系统偏好主题。
+ * 4. 生命周期管理：调度过渡动画并通过事件驱动执行资源销毁。
+ * * @param {string} message - 通知正文负载
+ * @param {Object} [options={}] - 配置参数对象
+ * @param {number} [options.duration=900] - 持续展示时间 (ms)
+ * @param {'info' | 'error'} [options.type='info'] - 通知语义类型，决定视觉特征与图标
+ */
 export function showToast(message: string, options: { duration?: number, type?: string } = {}) {
     try {
         injectStyle();
