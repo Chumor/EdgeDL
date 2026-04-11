@@ -1,4 +1,12 @@
-// 下载器用户配置
+/**
+ * @module core/config
+ * @description 全局配置中心：管理下载器包名映射、持久化键值对及链接识别规则库。
+ */
+
+/**
+ * 受支持的下载器包名 (Package Name) 映射表
+ * 用于 Android Intent 唤起特定的下载客户端
+ */
 export const DOWNLOADERS = {
     IDM: 'idm.internet.download.manager',
     IDM_PLUS: 'idm.internet.download.manager.plus',

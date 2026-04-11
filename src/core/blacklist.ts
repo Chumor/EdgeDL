@@ -1,3 +1,8 @@
+/**
+ * @module core/blacklist
+ * @description 黑名单管理模块：提供站点过滤规则的持久化读写及当前域名的匹配校验。
+ */
+
 const KEY = 'edgedl-blacklist';
 
 // 获取黑名单数组

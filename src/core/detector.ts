@@ -1,3 +1,7 @@
+/**
+ * @module core/detector
+ * @description 链接分析引擎：基于黑名单路径、文件后缀及特征关键字实现下载意图识别。
+ */
 import { EXTENSIONS, KEYWORDS } from './config';
 
 // 下载链接检测

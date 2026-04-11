@@ -1,3 +1,7 @@
+/**
+ * @module adapter/launcher
+ * @description 协议分发器：实现 Web URL 向 Android Intent 的转换与唤起。
+ */
 import { DOWNLOADERS } from '../core/config';
 import { buildIntentUrl } from './utils';
 

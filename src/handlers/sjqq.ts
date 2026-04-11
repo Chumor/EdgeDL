@@ -1,3 +1,7 @@
+/**
+ * @module handlers/sjqq
+ * @description 应用宝专项处理
+ */
 import { requestDownload } from '../core/download';
 
 export function initSjqqHandler() {

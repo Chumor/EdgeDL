@@ -1,3 +1,7 @@
+/**
+ * @module components/download-picker
+ * @description 交互式分发控制器：提供可视化 UI 供用户选择下载目标，并处理下载器偏好设置的持久化逻辑。
+ */
 import { openDownload } from '../adapter/factory';
 import { DOWNLOADERS } from '../core/config';
 import { getEdgeDLVersion } from '../core/config';
