@@ -31,19 +31,19 @@ const userscriptHeader =
  * 压缩模板字符串资产和特定的配置常量
  * @returns {import('rollup').Plugin}
  */
-const minifyAssets = () => ({
-  name: 'minify-assets',
-   renderChunk(code) {
+const optimizeSource = () => ({
+  name: 'optimize-source',
+  renderChunk(code) {
     let hasChanged = false;
 
     // 移除 JSDoc 块注释
-    const noJsDoc = code.replace(/\/\*\*[\s\S]*?\*\//g, () => {
+    let currentCode = code.replace(/^[^\S\r\n]*\/\*\*[\s\S]*?\*\/\r?\n?/gm, () => {
       hasChanged = true;
       return '';
     });
 
     // 处理模板字符串 (CSS/HTML)
-    const minified = code.replace(/`([\s\S]+?)`/g, (match, content) => {
+    currentCode = currentCode.replace(/`([\s\S]+?)`/g, (match, content) => {
       const trimmed = content.trim();
       
       // 匹配 CSS
@@ -71,7 +71,7 @@ const minifyAssets = () => ({
     });
 
     // 处理特定的变量配置 (EXTENSIONS, KEYWORDS, DOWNLOADERS)
-    const finalCode = minified.replace(
+    const finalCode = currentCode.replace(
       /\b(const|let|var)\s+(EXTENSIONS|KEYWORDS|DOWNLOADERS)\s*=\s*([\[{])([\s\S]+?)([\]}])/g,
       (_, kind, name, open, body, close) => {
         hasChanged = true;
@@ -93,7 +93,7 @@ export default {
     banner: userscriptHeader
   },
   plugins: [
-    minifyAssets(),
+    optimizeSource(),
     resolve(),
     commonjs()
   ]
