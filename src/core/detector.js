@@ -7,13 +7,8 @@ export function isDownloadLink(url){
     const lowerUrl = url.toLowerCase();
 
     // 排除非下载页面
-    if(
-        lowerUrl.includes('/login')||lowerUrl.includes('/register')||
-        lowerUrl.includes('/signin')||lowerUrl.includes('/signup')||
-        lowerUrl.includes('/logout')||
-        lowerUrl.includes('/account/')||lowerUrl.includes('/user/')||
-        lowerUrl.includes('/blob/')||lowerUrl.includes('/src/')||
-        lowerUrl.includes('/tree/')
+    const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|blob|src|tree)\//i;
+    if (EXCLUDE_PATHS.test(lowerUrl)
     ) return false;
 
     // 后缀匹配

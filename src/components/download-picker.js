@@ -11,13 +11,6 @@ const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 export async function showDownloadPicker(url, callback, mode = 'download') {
     if (document.getElementById('edgedl-picker')) return;
 
-    const idmIcon = downloaderIcons.IDM;
-    const idmPlusIcon = downloaderIcons.IDM_PLUS;
-    const admIcon = downloaderIcons.ADM;
-    const abdmIcon = downloaderIcons.ABDM;
-    const fdmIcon = downloaderIcons.FDM;
-    const edgeIcon = downloaderIcons.EDGE;
-
     const picker = document.createElement('div');
     picker.id = 'edgedl-picker';
     picker.innerHTML = `
@@ -27,22 +20,22 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             <div class="edgedl-version-tag">EdgeDL v${getEdgeDLVersion()}</div>
             <div class="edgedl-options">
                 <button data-pkg="${DOWNLOADERS.IDM}">
-                    <img src="${idmIcon}" /> 1DM
+                    <img src="${downloaderIcons.IDM}" /> 1DM
                 </button>
                 <button data-pkg="${DOWNLOADERS.IDM_PLUS || DOWNLOADERS.IDM}">
-                    <img src="${idmPlusIcon}" /> 1DM+
+                    <img src="${downloaderIcons.IDM_PLUS}" /> 1DM+
                 </button>
                 <button data-pkg="${DOWNLOADERS.ADM}">
-                    <img src="${admIcon}" /> ADM
+                    <img src="${downloaderIcons.ADM}" /> ADM
                 </button>
                 <button data-pkg="${DOWNLOADERS.ABDM}">
-                    <img src="${abdmIcon}" /> ABDM
+                    <img src="${downloaderIcons.ABDM}" /> ABDM
                 </button>
                 <button data-pkg="${DOWNLOADERS.FDM}">
-                    <img src="${fdmIcon}" /> FDM
+                    <img src="${downloaderIcons.FDM}" /> FDM
                 </button>
                 <button data-pkg="edge">
-                    <img src="${edgeIcon}" /> Edge
+                    <img src="${downloaderIcons.EDGE}" /> Edge
                 </button>
             </div>
             <label style="margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 13px;">
@@ -208,7 +201,11 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             animation: edgedl-slide-down 0.18s ease-in forwards;
         }
     `;
-    document.head.appendChild(style);
+    const styleId = 'edgedl-picker-style';
+    if (!document.getElementById(styleId)) {
+        style.id = styleId;
+        document.head.appendChild(style);
+    }
 
     // 读取默认下载器
     const defaultDownloader = await GM_getValue(DEFAULT_KEY, null);
@@ -238,10 +235,6 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
             // 若复选框已勾选或之前标记为“待设置”，保存为默认
-            if (mode === 'config') {
-                await GM_setValue(DEFAULT_KEY, pkg);
-                await GM_deleteValue(DEFAULT_PENDING_KEY);
-            }
 
             if (pkg === 'edge') {
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
@@ -258,30 +251,21 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
 
             if (typeof callback === 'function') callback(pkg);
 
-            openDownload(url, pkg);
-
-            picker.classList.add('closing');
-            picker.addEventListener('animationend', () => {
-                if (window.visualViewport) {
-                    visualViewport.removeEventListener('resize', layoutPicker);
-                    visualViewport.removeEventListener('scroll', layoutPicker);
-                }
-                picker.remove();
-                style.remove();
-                window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
-            }, { once: true });
+            if (mode !== 'config') openDownload(url, pkg);
+            gotoClose();
         });
     });
 
     function gotoClose() {
+        if (picker.classList.contains('closing')) return;
         picker.classList.add('closing');
-        picker.addEventListener('animationend', () => {
+        const card = picker.querySelector('.edgedl-card');
+        card.addEventListener('animationend', () => {
             if (window.visualViewport) {
                 visualViewport.removeEventListener('resize', layoutPicker);
                 visualViewport.removeEventListener('scroll', layoutPicker);
             }
             picker.remove();
-            style.remove();
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         }, { once: true });
     }
