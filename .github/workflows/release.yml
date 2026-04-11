@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "是否创建 Release"
+        description: "Whether to publish a release"
         required: true
         default: "true"
         type: choice
@@ -16,15 +16,17 @@ on:
       - dev
       - main
 
+  push:
+    branches:
+      - dev
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   release:
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || github.event_name == 'push'
 
     runs-on: ubuntu-latest
 
@@ -59,9 +61,15 @@ jobs:
           BASE="${{ steps.base.outputs.base }}"
           SHA=$(git rev-parse --short HEAD)
 
-          git fetch --tags
 
-          if [ "${GITHUB_REF_NAME}" = "dev" ]; then
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          fi
+
+          echo "Branch: $BRANCH"
+
+          if [ "$BRANCH" = "dev" ]; then
             LAST=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
 
             if [ -z "$LAST" ]; then
@@ -97,18 +105,65 @@ jobs:
 
       - name: Generate Changelog
         run: |
-          npx -y conventional-changelog-cli -p angular \
-          -r 1 \
-          --tag-prefix v \
-          > RELEASE_NOTES.md
-          CURRENT_TAG="v${{ steps.version.outputs.version }}"
-          git tag $CURRENT_TAG
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          fi
 
-      - name: Create Release
+          echo "Branch: $BRANCH"
+
+          if [ "$BRANCH" = "dev" ]; then
+            echo "Using beta tags"
+            LAST_TAG=$(git tag -l "v*-beta.*" | sort -V | tail -n 1)
+          else
+            echo "Using stable tags"
+            LAST_TAG=$(git tag -l "v[0-9]*" | grep -v beta | sort -V | tail -n 1)
+          fi
+
+          echo "Last tag: $LAST_TAG"
+
+          if [ -n "$LAST_TAG" ]; then
+            npx -y conventional-changelog-cli -p angular \
+              --from $LAST_TAG \
+              --to HEAD \
+              --tag-prefix v \
+              > RELEASE_NOTES.md
+          else
+            npx -y conventional-changelog-cli -p angular \
+              --tag-prefix v \
+              > RELEASE_NOTES.md
+          fi
+
+      - name: Check for New Commits
+        id: check_commits
+        run: |
+          BASE="${{ steps.base.outputs.base }}"
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          fi
+
+
+          if [ "$BRANCH" = "dev" ]; then
+            LAST_TAG=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
+          else
+            LAST_TAG=$(git tag -l "v${BASE}" | grep -v beta | sort -V | tail -n 1)
+          fi
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git rev-list $LAST_TAG..HEAD --count)
+          else
+            COMMITS=$(git rev-list HEAD --count)
+          fi
+
+          echo "Commits since last tag: $COMMITS"
+          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Conditional Release
+        id: create_release
         if: |
-          github.event.inputs.publish == 'true' ||
-          github.event.pull_request.merged == true
-
+          (steps.check_commits.outputs.commits >= env.MIN_RELEASE_COMMITS || github.event_name == 'workflow_dispatch') && 
+          (github.event_name == 'push' || github.event.inputs.publish == 'true' || github.event.pull_request.merged == true)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -117,3 +172,42 @@ jobs:
           files: dist/EdgeDL.user.js
           prerelease: ${{ steps.version.outputs.prerelease }}
           generate_release_notes: false
+
+      - name: Set release status and URL
+        if: steps.create_release.outcome == 'success'
+        run: |
+          echo "RELEASE_STATUS=Generated" >> $GITHUB_ENV
+          echo "RELEASE_URL=https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_ENV
+
+      - name: Skip Release if No Commits
+        if: steps.check_commits.outputs.commits < env.MIN_RELEASE_COMMITS && github.event_name != 'workflow_dispatch'
+        run: |
+          echo "Insufficient commits (${{ steps.check_commits.outputs.commits }}/${{ env.MIN_RELEASE_COMMITS }}). Skipping."
+          exit 0
+
+      - name: Write release info to summary
+        if: always()
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PRERELEASE="${{ steps.version.outputs.prerelease }}"
+          COMMITS="${{ steps.check_commits.outputs.commits }}"
+
+          if [ "${COMMITS}" == "0" ]; then
+            STATUS="Skipped (no new commits)"
+            RELEASE_URL="N/A"
+          else
+            STATUS="${RELEASE_STATUS:-Skipped}"
+            RELEASE_URL="${RELEASE_URL:-N/A}"
+          fi
+
+          {
+            echo "## Release Summary"
+            echo ""
+            echo "| Item                       | Details                         |"
+            echo "|:---------------------------|:--------------------------------|"
+            echo "| **Version**                | $VERSION |"
+            echo "| **Prerelease**             | $PRERELEASE |"
+            echo "| **Commits since last tag** | $COMMITS |"
+            echo "| **Release Status**         | $STATUS |"
+            echo "| **Release URL**            | [link]($RELEASE_URL) |"
+          } >> $GITHUB_STEP_SUMMARY

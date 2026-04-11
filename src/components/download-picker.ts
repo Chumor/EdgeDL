@@ -1,22 +1,17 @@
-import { openDownload } from '../adapter/factory.js';
-import { DOWNLOADERS } from '../core/config.js';
-import { getEdgeDLVersion } from '../core/config.js';
-import { showToast } from './toast.js';
-import { downloaderIcons } from './assets/icons.js';
-import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
+import { openDownload } from '../adapter/factory';
+import { DOWNLOADERS } from '../core/config';
+import { getEdgeDLVersion } from '../core/config';
+import { downloaderIcons } from './assets/icons';
 
 const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 
-export async function showDownloadPicker(url, callback, mode = 'download') {
+export async function showDownloadPicker(
+    url: string, 
+    callback: (pkg: string) => void, 
+    mode = 'download'
+) {
     if (document.getElementById('edgedl-picker')) return;
-
-    const idmIcon = downloaderIcons.IDM;
-    const idmPlusIcon = downloaderIcons.IDM_PLUS;
-    const admIcon = downloaderIcons.ADM;
-    const abdmIcon = downloaderIcons.ABDM;
-    const fdmIcon = downloaderIcons.FDM;
-    const edgeIcon = downloaderIcons.EDGE;
 
     const picker = document.createElement('div');
     picker.id = 'edgedl-picker';
@@ -27,22 +22,22 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             <div class="edgedl-version-tag">EdgeDL v${getEdgeDLVersion()}</div>
             <div class="edgedl-options">
                 <button data-pkg="${DOWNLOADERS.IDM}">
-                    <img src="${idmIcon}" /> 1DM
+                    <img src="${downloaderIcons.IDM}" /> 1DM
                 </button>
                 <button data-pkg="${DOWNLOADERS.IDM_PLUS || DOWNLOADERS.IDM}">
-                    <img src="${idmPlusIcon}" /> 1DM+
+                    <img src="${downloaderIcons.IDM_PLUS}" /> 1DM+
                 </button>
                 <button data-pkg="${DOWNLOADERS.ADM}">
-                    <img src="${admIcon}" /> ADM
+                    <img src="${downloaderIcons.ADM}" /> ADM
                 </button>
                 <button data-pkg="${DOWNLOADERS.ABDM}">
-                    <img src="${abdmIcon}" /> ABDM
+                    <img src="${downloaderIcons.ABDM}" /> ABDM
                 </button>
                 <button data-pkg="${DOWNLOADERS.FDM}">
-                    <img src="${fdmIcon}" /> FDM
+                    <img src="${downloaderIcons.FDM}" /> FDM
                 </button>
                 <button data-pkg="edge">
-                    <img src="${edgeIcon}" /> Edge
+                    <img src="${downloaderIcons.EDGE}" /> Edge
                 </button>
             </div>
             <label style="margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 13px;">
@@ -54,15 +49,16 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     document.documentElement.appendChild(picker);
 
     const layoutPicker = () => {
-        const w = window.visualViewport ? visualViewport.width : document.documentElement.clientWidth;
-        const card = picker.querySelector('.edgedl-card');
+        const vvp = window.visualViewport;
+        const w = vvp ? vvp.width : document.documentElement.clientWidth;
+        const card = picker.querySelector('.edgedl-card') as HTMLDivElement | null;
         if (card) card.style.maxWidth = (w - 32) + 'px';
     };
     layoutPicker();
 
     if (window.visualViewport) {
-        visualViewport.addEventListener('resize', layoutPicker);
-        visualViewport.addEventListener('scroll', layoutPicker);
+        window.visualViewport.addEventListener('resize', layoutPicker);
+        window.visualViewport.addEventListener('scroll', layoutPicker);
     }
 
     const style = document.createElement('style');
@@ -208,16 +204,20 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
             animation: edgedl-slide-down 0.18s ease-in forwards;
         }
     `;
-    document.head.appendChild(style);
+    const styleId = 'edgedl-picker-style';
+    if (!document.getElementById(styleId)) {
+        style.id = styleId;
+        document.head.appendChild(style);
+    }
 
     // 读取默认下载器
-    const defaultDownloader = await GM_getValue(DEFAULT_KEY, null);
-    const defaultCheckbox = picker.querySelector('#edgedl-set-default');
-    defaultCheckbox.checked = !!defaultDownloader;
+    const defaultDownloader = await GM_getValue<string | null>(DEFAULT_KEY, null);
+    const defaultCheckbox = picker.querySelector('#edgedl-set-default') as HTMLInputElement;
+    if (defaultCheckbox) defaultCheckbox.checked = !!defaultDownloader;
 
     if (defaultDownloader) {
         // 高亮默认下载器按钮
-        const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`);
+        const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`) as HTMLButtonElement | null;
         if (defaultBtn) defaultBtn.classList.add('selected');
     }
 
@@ -234,14 +234,10 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     // 点击唤起
     picker.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
-            const pkg = btn.dataset.pkg;
+            const pkg = btn.dataset.pkg || '';
             const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
             // 若复选框已勾选或之前标记为“待设置”，保存为默认
-            if (mode === 'config') {
-                await GM_setValue(DEFAULT_KEY, pkg);
-                await GM_deleteValue(DEFAULT_PENDING_KEY);
-            }
 
             if (pkg === 'edge') {
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
@@ -258,33 +254,24 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
 
             if (typeof callback === 'function') callback(pkg);
 
-            openDownload(url, pkg);
-
-            picker.classList.add('closing');
-            picker.addEventListener('animationend', () => {
-                if (window.visualViewport) {
-                    visualViewport.removeEventListener('resize', layoutPicker);
-                    visualViewport.removeEventListener('scroll', layoutPicker);
-                }
-                picker.remove();
-                style.remove();
-                window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
-            }, { once: true });
+            if (mode !== 'config') openDownload(url, pkg);
+            gotoClose();
         });
     });
 
     function gotoClose() {
+        if (picker.classList.contains('closing')) return;
         picker.classList.add('closing');
-        picker.addEventListener('animationend', () => {
+        const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
+        card?.addEventListener('animationend', () => {
             if (window.visualViewport) {
-                visualViewport.removeEventListener('resize', layoutPicker);
-                visualViewport.removeEventListener('scroll', layoutPicker);
+                window.visualViewport.removeEventListener('resize', layoutPicker);
+                window.visualViewport.removeEventListener('scroll', layoutPicker);
             }
             picker.remove();
-            style.remove();
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         }, { once: true });
     }
 
-    picker.querySelector('.edgedl-bg').addEventListener('click', gotoClose);
+    picker.querySelector('.edgedl-bg')?.addEventListener('click', gotoClose);
 }

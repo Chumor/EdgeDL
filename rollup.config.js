@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import fs from 'fs';
 
 const pkg = JSON.parse(fs.readFileSync('./package.json'));
@@ -27,27 +28,65 @@ const userscriptHeader =
 
 `;
 
-// 压缩
-const minifyAssets = () => ({
-  name: 'minify-assets',
-   renderChunk(code) {
-    const minified = code
-      // CSS
-      .replace(/`([\s\S]+?)`/g, (m, c) => 
-        ((c.includes('{') && c.includes(':')) || (c.match(/\n/g) || []).length > 3)
-          ? `\`${c.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*([{:;,])\s*/g, '$1').trim()}\``
-          : m
-      )
-      // 配置数组
-      .replace(/(const\s+(?:EXTENSIONS|KEYWORDS)\s*=\s*\[)([\s\S]+?)(\])/g, 
-        (_, head, body, tail) => `${head}${body.replace(/\s+/g, '')}${tail}`
-      );
-    return { code: minified, map: null };
-  }
+/**
+ * 压缩模板字符串资产和特定的配置常量
+ * @returns {import('rollup').Plugin}
+ */
+const optimizeSource = () => ({
+  name: 'optimize-source',
+  renderChunk(code) {
+    let hasChanged = false;
+
+    // 移除 JSDoc 块注释
+    let currentCode = code.replace(/^[^\S\r\n]*\/\*\*[\s\S]*?\*\/\r?\n?/gm, () => {
+      hasChanged = true;
+      return '';
+    });
+
+    // 处理模板字符串 (CSS/HTML)
+    currentCode = currentCode.replace(/`([\s\S]+?)`/g, (match, content) => {
+      const trimmed = content.trim();
+      
+      // 匹配 CSS
+      if (trimmed.includes('{') && trimmed.includes(':')) {
+        hasChanged = true;
+        const css = content
+          .replace(/\/\*[\s\S]*?\*\//g, '') // 移除注释
+          .replace(/\s+/g, ' ')             // 合并空格
+          .replace(/\s*([{:;},>])\s*/g, '$1') // 移除符号周围空格
+          .trim();
+        return `\`${css}\``;
+      }
+
+      // 匹配 HTML
+      if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
+        hasChanged = true;
+        const html = content
+          .replace(/>\s+</g, '><')          // 移除标签间空格
+          .replace(/\s{2,}/g, ' ')          // 合并多余空格
+          .trim();
+        return `\`${html}\``;
+      }
+
+      return match;
+    });
+
+    // 处理特定的变量配置 (EXTENSIONS, KEYWORDS, DOWNLOADERS)
+    const finalCode = currentCode.replace(
+      /\b(const|let|var)\s+(EXTENSIONS|KEYWORDS|DOWNLOADERS)\s*=\s*([\[{])([\s\S]+?)([\]}])/g,
+      (_, kind, name, open, body, close) => {
+        hasChanged = true;
+        const flattened = body.split('\n').map(s => s.trim()).filter(Boolean).join('');
+        return `${kind} ${name}=${open}${flattened}${close}`;
+      }
+    );
+
+    return hasChanged ? { code: finalCode, map: null } : null;
+  },
 });
 
 export default {
-  input: 'src/main.js',
+  input: 'src/main.ts',
   output: {
     file: 'dist/EdgeDL.user.js',
     format: 'iife',
@@ -55,8 +94,9 @@ export default {
     banner: userscriptHeader
   },
   plugins: [
-    minifyAssets(),
+    typescript({ tsconfig: './tsconfig.json' }),
     resolve(),
-    commonjs()
+    commonjs(),
+    optimizeSource()
   ]
 };

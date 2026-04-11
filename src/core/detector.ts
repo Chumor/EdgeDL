@@ -1,19 +1,14 @@
-import { EXTENSIONS, KEYWORDS } from './config.js';
+import { EXTENSIONS, KEYWORDS } from './config';
 
 // 下载链接检测
-export function isDownloadLink(url){
+export function isDownloadLink(url: string) {
     if(url?.includes('sourceforge.net/projects/') && url.includes('/files/')) return false;
     if(!url || !url.startsWith('http')) return false;
     const lowerUrl = url.toLowerCase();
 
     // 排除非下载页面
-    if(
-        lowerUrl.includes('/login')||lowerUrl.includes('/register')||
-        lowerUrl.includes('/signin')||lowerUrl.includes('/signup')||
-        lowerUrl.includes('/logout')||
-        lowerUrl.includes('/account/')||lowerUrl.includes('/user/')||
-        lowerUrl.includes('/blob/')||lowerUrl.includes('/src/')||
-        lowerUrl.includes('/tree/')
+    const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|blob|src|tree)\//i;
+    if (EXCLUDE_PATHS.test(lowerUrl)
     ) return false;
 
     // 后缀匹配
