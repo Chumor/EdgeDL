@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    /* 编译环境 */
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    
+    /* 严格检查 */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    
+    /* 构建配置 */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    
+    /* 路径映射 */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* 全局类型 */
+    "types": ["tampermonkey"]
+  },
+  "include": ["src"]
+}

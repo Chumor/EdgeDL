@@ -1,14 +1,16 @@
-import { openDownload } from '../adapter/factory.js';
-import { DOWNLOADERS } from '../core/config.js';
-import { getEdgeDLVersion } from '../core/config.js';
-import { showToast } from './toast.js';
-import { downloaderIcons } from './assets/icons.js';
-import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
+import { openDownload } from '../adapter/factory';
+import { DOWNLOADERS } from '../core/config';
+import { getEdgeDLVersion } from '../core/config';
+import { downloaderIcons } from './assets/icons';
 
 const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 
-export async function showDownloadPicker(url, callback, mode = 'download') {
+export async function showDownloadPicker(
+    url: string, 
+    callback: (pkg: string) => void, 
+    mode = 'download'
+) {
     if (document.getElementById('edgedl-picker')) return;
 
     const picker = document.createElement('div');
@@ -47,15 +49,16 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     document.documentElement.appendChild(picker);
 
     const layoutPicker = () => {
-        const w = window.visualViewport ? visualViewport.width : document.documentElement.clientWidth;
-        const card = picker.querySelector('.edgedl-card');
+        const vvp = window.visualViewport;
+        const w = vvp ? vvp.width : document.documentElement.clientWidth;
+        const card = picker.querySelector('.edgedl-card') as HTMLDivElement | null;
         if (card) card.style.maxWidth = (w - 32) + 'px';
     };
     layoutPicker();
 
     if (window.visualViewport) {
-        visualViewport.addEventListener('resize', layoutPicker);
-        visualViewport.addEventListener('scroll', layoutPicker);
+        window.visualViewport.addEventListener('resize', layoutPicker);
+        window.visualViewport.addEventListener('scroll', layoutPicker);
     }
 
     const style = document.createElement('style');
@@ -208,13 +211,13 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     }
 
     // 读取默认下载器
-    const defaultDownloader = await GM_getValue(DEFAULT_KEY, null);
-    const defaultCheckbox = picker.querySelector('#edgedl-set-default');
-    defaultCheckbox.checked = !!defaultDownloader;
+    const defaultDownloader = await GM_getValue<string | null>(DEFAULT_KEY, null);
+    const defaultCheckbox = picker.querySelector('#edgedl-set-default') as HTMLInputElement;
+    if (defaultCheckbox) defaultCheckbox.checked = !!defaultDownloader;
 
     if (defaultDownloader) {
         // 高亮默认下载器按钮
-        const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`);
+        const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`) as HTMLButtonElement | null;
         if (defaultBtn) defaultBtn.classList.add('selected');
     }
 
@@ -231,7 +234,7 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     // 点击唤起
     picker.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
-            const pkg = btn.dataset.pkg;
+            const pkg = btn.dataset.pkg || '';
             const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
             // 若复选框已勾选或之前标记为“待设置”，保存为默认
@@ -259,16 +262,16 @@ export async function showDownloadPicker(url, callback, mode = 'download') {
     function gotoClose() {
         if (picker.classList.contains('closing')) return;
         picker.classList.add('closing');
-        const card = picker.querySelector('.edgedl-card');
-        card.addEventListener('animationend', () => {
+        const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
+        card?.addEventListener('animationend', () => {
             if (window.visualViewport) {
-                visualViewport.removeEventListener('resize', layoutPicker);
-                visualViewport.removeEventListener('scroll', layoutPicker);
+                window.visualViewport.removeEventListener('resize', layoutPicker);
+                window.visualViewport.removeEventListener('scroll', layoutPicker);
             }
             picker.remove();
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         }, { once: true });
     }
 
-    picker.querySelector('.edgedl-bg').addEventListener('click', gotoClose);
+    picker.querySelector('.edgedl-bg')?.addEventListener('click', gotoClose);
 }

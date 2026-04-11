@@ -1,10 +1,10 @@
-import { requestDownload } from '../core/download.js';
+import { requestDownload } from '../core/download';
 
 export function initSjqqHandler() {
     if (location.hostname !== 'sj.qq.com') return;
 
     // 识别下载触发元素
-    function isDownloadTrigger(el) {
+    function isDownloadTrigger(el: HTMLElement) {
         if (!el) return false;
         return !!el.closest?.(
             [
@@ -19,7 +19,7 @@ export function initSjqqHandler() {
     }
 
     // 阻断并接管下载
-    function takeover(e) {
+    function takeover(e: Event) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -43,7 +43,7 @@ export function initSjqqHandler() {
             type,
             e => {
                 if (e.defaultPrevented) return;
-                if (!isDownloadTrigger(e.target)) return;
+                if (!e.target || !isDownloadTrigger(e.target as HTMLElement)) return;
                 takeover(e);
             },
             true

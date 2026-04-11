@@ -25,7 +25,7 @@ export let selectedDownloader = GM_getValue(
 );
 
 // 设置默认下载器
-export function setDefaultDownloader(pkg) {
+export function setDefaultDownloader(pkg: string) {
     selectedDownloader = pkg;
     GM_setValue(DEFAULT_DOWNLOADER_KEY, pkg);
 }

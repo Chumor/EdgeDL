@@ -1,11 +1,10 @@
 /**
  * @module adapter/factory
- * @description 下载任务分发工厂，处理黑名单拦截并匹配对应的下载适配器
+ * @description 下载任务分发工厂，匹配对应的下载适配器
  */
-import { openDownloader } from './launcher.js';
-import { DOWNLOADERS } from '../core/config.js';
-import { showToast } from '../components/toast.js';
-import { isCurrentSiteBlacklisted } from '../core/blacklist.js';
+import { openDownloader } from './launcher';
+import { DOWNLOADERS } from '../core/config';
+import { showToast } from '../components/toast';
 
 /**
  * 下载器标识与唤起名称的映射表
@@ -26,12 +25,7 @@ const DOWNLOADER_MAP = {
  * @param {string} downloader - 下载器标识 (包名或 'edge')
  * @returns {Promise<void>}
  */
-export async function openDownload(url, downloader) {
-    if (await isCurrentSiteBlacklisted()) {
-        showToast('黑名单：下载已阻止');
-        return;
-    }
-
+export async function openDownload(url: string, downloader: string) {
     const launcherKey = DOWNLOADER_MAP[downloader];
     if (launcherKey) {
         showToast(`${launcherKey} 正在唤起`);
