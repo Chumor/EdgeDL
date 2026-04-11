@@ -1,7 +1,6 @@
-import { selectedDownloader, DOWNLOADERS } from '../core/config.js';
 
 let styleInjected = false;
-let activeToast = null;
+let activeToast: HTMLElement | null = null;
 
 // 注入全局样式
 function injectStyle() {
@@ -80,16 +79,16 @@ function getTheme() {
 }
 
 // 显示 toast
-export function showToast(message, options = {}) {
+export function showToast(message: string, options: { duration?: number, type?: string } = {}) {
     try {
         injectStyle();
 
-        if (typeof options === 'number') options = { duration: options };
+        const finalOptions = typeof options === 'number' ? { duration: options } : options;
 
         const {
             duration = 900,
             type = 'info'
-        } = options;
+        } = finalOptions;
 
         if (activeToast) activeToast.remove();
 

@@ -1,11 +1,11 @@
-import { requestDownload } from '../core/download.js';
+import { requestDownload } from '../core/download';
 
 export function initDeepSeekHandler() {
     if (!location.hostname.includes('download.deepseek.com')) return;
 
     const APK_URL = "https://download.deepseek.com/apk/deepseek.apk";
 
-    const takeover = e => {
+    const takeover = (e: Event) => {
         if (!e || e.defaultPrevented) return;
 
         e.preventDefault?.();
@@ -18,10 +18,14 @@ export function initDeepSeekHandler() {
     };
 
     document.addEventListener('click', e => {
-        if (e.target?.closest?.('div')?.textContent?.includes('下载 APK 文件')) takeover(e);
+        const target = e.target as HTMLElement;
+        if (target?.closest?.('div')?.textContent?.includes('下载 APK 文件')) takeover(e);
     }, true);
 
     try {
-        window.open = () => takeover(new Event('edgedl-deepseek'));
+        window.open = () => {
+            takeover(new Event('edgedl-deepseek'));
+            return null;
+        };
     } catch {}
 }

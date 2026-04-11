@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import fs from 'fs';
 
 const pkg = JSON.parse(fs.readFileSync('./package.json'));
@@ -85,7 +86,7 @@ const optimizeSource = () => ({
 });
 
 export default {
-  input: 'src/main.js',
+  input: 'src/main.ts',
   output: {
     file: 'dist/EdgeDL.user.js',
     format: 'iife',
@@ -93,8 +94,9 @@ export default {
     banner: userscriptHeader
   },
   plugins: [
-    optimizeSource(),
+    typescript({ tsconfig: './tsconfig.json' }),
     resolve(),
-    commonjs()
+    commonjs(),
+    optimizeSource()
   ]
 };

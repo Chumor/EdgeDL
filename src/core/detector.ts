@@ -1,7 +1,7 @@
-import { EXTENSIONS, KEYWORDS } from './config.js';
+import { EXTENSIONS, KEYWORDS } from './config';
 
 // 下载链接检测
-export function isDownloadLink(url){
+export function isDownloadLink(url: string) {
     if(url?.includes('sourceforge.net/projects/') && url.includes('/files/')) return false;
     if(!url || !url.startsWith('http')) return false;
     const lowerUrl = url.toLowerCase();

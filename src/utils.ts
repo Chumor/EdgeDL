@@ -1,5 +1,5 @@
 // 从 onclick 中解析下载 URL
-export function extractUrlFromOnclick(onclick) {
+export function extractUrlFromOnclick(onclick: string) {
     if (!onclick) return null;
 
     const match = onclick.match(
