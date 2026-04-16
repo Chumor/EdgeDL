@@ -162,8 +162,9 @@ jobs:
       - name: Conditional Release
         id: create_release
         if: |
-          (steps.check_commits.outputs.commits >= env.MIN_RELEASE_COMMITS || github.event_name == 'workflow_dispatch') && 
-          (github.event_name == 'push' || github.event.inputs.publish == 'true' || github.event.pull_request.merged == true)
+          (github.event_name == 'workflow_dispatch' && inputs.publish == 'true') ||
+          (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+          (github.event_name == 'push' && steps.check_commits.outputs.commits >= env.MIN_RELEASE_COMMITS)
         uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -173,18 +174,6 @@ jobs:
           prerelease: ${{ steps.version.outputs.prerelease }}
           generate_release_notes: false
 
-      - name: Set release status and URL
-        if: steps.create_release.outcome == 'success'
-        run: |
-          echo "RELEASE_STATUS=Generated" >> $GITHUB_ENV
-          echo "RELEASE_URL=https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_ENV
-
-      - name: Skip Release if No Commits
-        if: steps.check_commits.outputs.commits < env.MIN_RELEASE_COMMITS && github.event_name != 'workflow_dispatch'
-        run: |
-          echo "Insufficient commits (${{ steps.check_commits.outputs.commits }}/${{ env.MIN_RELEASE_COMMITS }}). Skipping."
-          exit 0
-
       - name: Write release info to summary
         if: always()
         run: |
@@ -192,12 +181,18 @@ jobs:
           PRERELEASE="${{ steps.version.outputs.prerelease }}"
           COMMITS="${{ steps.check_commits.outputs.commits }}"
 
-          if [ "${COMMITS}" == "0" ]; then
+          if [ "${{ steps.create_release.outcome }}" == "success" ]; then
+            STATUS="Published"
+            RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}"
+          elif [ "${COMMITS}" -lt "${{ env.MIN_RELEASE_COMMITS }}" ] && [ "${{ github.event_name }}" == "push" ]; then
+            STATUS="Skipped (insufficient commits: ${COMMITS}/${{ env.MIN_RELEASE_COMMITS }})"
+            RELEASE_URL="N/A"
+          elif [ "${COMMITS}" == "0" ]; then
             STATUS="Skipped (no new commits)"
             RELEASE_URL="N/A"
           else
-            STATUS="${RELEASE_STATUS:-Skipped}"
-            RELEASE_URL="${RELEASE_URL:-N/A}"
+            STATUS="Skipped or failed"
+            RELEASE_URL="N/A"
           fi
 
           {
