@@ -1,9 +1,10 @@
 /**
  * @module components/menu
- * @description 脚本菜单管理器：负责集成油猴原生菜单指令，提供配置入口及黑名单管理接口。
+ * @description 脚本菜单管理器：负责集成油猴原生菜单指令，提供配置入口及站点接管管理接口。
  */
 import { showDownloadPicker } from './download-picker';
-import { toggleCurrentSite } from '../core/blacklist';
+import { toggleSiteIntercept } from '../core/intercept';
+import { showToast } from './toast';
 
 let menuRegistered = false;
 
@@ -16,13 +17,12 @@ export function registerMenu() {
         showDownloadPicker('', () => {}, 'config');
     });
 
-    // 加入或移出黑名单
-    GM_registerMenuCommand('加入/移出黑名单（下载器接管）', async () => {
-        const added = await toggleCurrentSite();
-        alert(
-            added
-                ? '当前站点已加入黑名单'
-                : '当前站点已移出黑名单'
+    // 切换站点接管状态
+    GM_registerMenuCommand('切换本站接管状态', async () => {
+        const added = await toggleSiteIntercept();
+        showToast(
+            added ? '已禁止接管本站' : '已允许接管本站',
+            { type: 'info', duration: 1500 }
         );
     });
 

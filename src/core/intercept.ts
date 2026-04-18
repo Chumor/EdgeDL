@@ -1,18 +1,18 @@
 /**
- * @module core/blacklist
- * @description 黑名单管理模块：提供站点过滤规则的持久化读写及当前域名的匹配校验。
+ * @module core/intercept
+ * @description 接管控制模块：管理站点是否允许 EdgeDL 接管下载行为。
  */
 
-const KEY = 'edgedl-blacklist';
+const KEY = 'edgedl-site-intercept';
 
-// 获取黑名单数组
-export async function getBlacklist() {
+// 获取接管站点列表
+export async function getInterceptSites() {
     const list = await GM_getValue(KEY, []);
     return Array.isArray(list) ? (list as string[]) : [];
 }
 
-// 保存黑名单
-export async function saveBlacklist(list: string[]) {
+// 保存接管站点列表
+export async function setInterceptSites(list: string[]) {
     const normalized = list.map((i) => 
         typeof i === 'string' ? i.toLowerCase() : String(i).toLowerCase()
     );
@@ -20,18 +20,18 @@ export async function saveBlacklist(list: string[]) {
     return normalized;
 }
 
-// 判断当前站点是否在黑名单
-export async function isCurrentSiteBlacklisted() {
+// 判断当前站点是否允许接管
+export async function isSiteIntercepted() {
     const host = location.hostname.toLowerCase();
-    const list = await getBlacklist();
+    const list = await getInterceptSites();
     if (list.length === 0) return false;
     return list.some(item => (item as string).toLowerCase() === host);
 }
 
-// 切换当前站点黑名单状态
-export async function toggleCurrentSite() {
+// 切换当前站点接管状态
+export async function toggleSiteIntercept() {
     const host = location.hostname.toLowerCase();
-    const list = await getBlacklist();
+    const list = await getInterceptSites();
 
     let added;
     const index = list.findIndex(item => (item as string).toLowerCase() === host);
@@ -43,6 +43,6 @@ export async function toggleCurrentSite() {
         added = true;
     }
 
-    await saveBlacklist(list);
+    await setInterceptSites(list);
     return added;
 }

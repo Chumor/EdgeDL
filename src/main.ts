@@ -7,7 +7,7 @@ import { extractUrlFromOnclick } from './utils';
 import { requestDownload } from './core/download';
 import { registerMenu } from './components/menu';
 import { showToast } from './components/toast';
-import { isCurrentSiteBlacklisted } from './core/blacklist';
+import { isSiteIntercepted } from './core/intercept';
 import { initSjqqHandler } from './handlers/sjqq';
 import { initDeepSeekHandler } from './handlers/deepseek';
 
@@ -58,9 +58,9 @@ async function handleClick(e: MouseEvent) {
 
     if (!url || !isDownloadLink(url)) return;
 
-    // 命中黑名单策略：提示用户并放弃接管，交还控制权给浏览器
-    if (await isCurrentSiteBlacklisted()) {
-        showToast('黑名单：已跳过接管', { type: 'info', duration: 1500 });
+    // 命中接管排除策略：跳过 EdgeDL 接管并提示，交还浏览器默认行为
+    if (await isSiteIntercepted()) {
+        showToast('已跳过接管', { type: 'info', duration: 1500 });
         return; 
     }
 
