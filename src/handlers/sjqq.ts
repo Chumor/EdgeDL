@@ -53,12 +53,4 @@ export function initSjqqHandler() {
             true
         );
     });
-
-    // 兜底拦截脚本触发的下载
-    try {
-        window.open = () => {
-            takeover(new Event('edgedl-sjqq'));
-            return null;
-        };
-    } catch {}
 }

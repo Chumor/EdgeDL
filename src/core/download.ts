@@ -8,7 +8,7 @@ import { showDownloadPicker } from '../components/download-picker';
 export async function requestDownload(url: string) {
     if(!url) return;
 
-    const dl = GM_getValue('edgedl-default-downloader');
+    const dl = await GM_getValue('edgedl-default-downloader');
 
     if(dl){
         return openDownload(url, dl as string);

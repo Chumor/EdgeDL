@@ -25,11 +25,4 @@ export function initDeepSeekHandler() {
         const target = e.target as HTMLElement;
         if (target?.closest?.('div')?.textContent?.includes('下载 APK 文件')) takeover(e);
     }, true);
-
-    try {
-        window.open = () => {
-            takeover(new Event('edgedl-deepseek'));
-            return null;
-        };
-    } catch {}
 }
