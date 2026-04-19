@@ -14,7 +14,7 @@ export function registerMenu() {
 
     // 更改默认下载器
     GM_registerMenuCommand('更改默认下载器', () => {
-        showDownloadPicker('', () => {}, 'config');
+        showDownloadPicker(() => {}, 'config');
     });
 
     // 切换站点接管状态

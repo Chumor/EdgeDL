@@ -2,7 +2,6 @@
  * @module components/download-picker
  * @description 交互式分发控制器：提供可视化 UI 供用户选择下载目标，并处理下载器偏好设置的持久化逻辑。
  */
-import { openDownload } from '../adapter/factory';
 import { DOWNLOADERS } from '../core/config';
 import { getEdgeDLVersion } from '../core/config';
 import { downloaderIcons } from './assets/icons';
@@ -11,7 +10,6 @@ const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 
 export async function showDownloadPicker(
-    url: string, 
     callback: (pkg: string) => void, 
     mode = 'download'
 ) {
@@ -257,8 +255,6 @@ export async function showDownloadPicker(
             }
 
             if (typeof callback === 'function') callback(pkg);
-
-            if (mode !== 'config') openDownload(url, pkg);
             gotoClose();
         });
     });
