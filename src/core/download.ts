@@ -15,7 +15,7 @@ export async function requestDownload(url: string) {
     }
 
     const selected = await new Promise<string | null>((resolve) => {
-        showDownloadPicker((pkg) => resolve(pkg));
+        showDownloadPicker(resolve);
     });
     if(selected){
         return openDownload(url, selected);

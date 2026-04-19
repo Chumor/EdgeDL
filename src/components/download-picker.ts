@@ -10,10 +10,13 @@ const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 
 export async function showDownloadPicker(
-    callback: (pkg: string) => void, 
+    callback: (pkg: string | null) => void,
     mode = 'download'
 ) {
-    if (document.getElementById('edgedl-picker')) return;
+    if (document.getElementById('edgedl-picker')) {
+        callback(null);
+         return;
+    }
 
     const picker = document.createElement('div');
     picker.id = 'edgedl-picker';
@@ -261,6 +264,7 @@ export async function showDownloadPicker(
 
     function gotoClose() {
         if (picker.classList.contains('closing')) return;
+        if (typeof callback === 'function') callback(null);
         picker.classList.add('closing');
         const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
         card?.addEventListener('animationend', () => {
