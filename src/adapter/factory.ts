@@ -7,18 +7,6 @@ import { DOWNLOADERS } from '../core/config';
 import { showToast } from '../components/toast';
 
 /**
- * 下载器标识与唤起名称的映射表
- * @const {Object<string, string>}
- */
-const DOWNLOADER_MAP = {
-    [DOWNLOADERS.IDM]: 'IDM',
-    [DOWNLOADERS.IDM_PLUS]: 'IDM_PLUS',
-    [DOWNLOADERS.ADM]: 'ADM',
-    [DOWNLOADERS.ABDM]: 'ABDM',
-    [DOWNLOADERS.FDM]: 'FDM'
-};
-
-/**
  * 调用指定下载器执行下载任务
  * @async
  * @param {string} url - 目标下载链接
@@ -26,7 +14,8 @@ const DOWNLOADER_MAP = {
  * @returns {Promise<void>}
  */
 export async function openDownload(url: string, downloader: string) {
-    const launcherKey = DOWNLOADER_MAP[downloader];
+    const launcherKey = (Object.keys(DOWNLOADERS) as Array<keyof typeof DOWNLOADERS>)
+        .find((key) => DOWNLOADERS[key] === downloader);
     if (launcherKey) {
         showToast(`${launcherKey} 正在唤起`);
         openDownloader(url, launcherKey);
