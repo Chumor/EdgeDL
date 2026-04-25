@@ -1,6 +1,8 @@
 name: Preview Release Userscript
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - dev
@@ -18,9 +20,11 @@ permissions:
 jobs:
   preview_release:
     if: |
-      contains(github.event.head_commit.message, '[release]') &&
-      !contains(github.event.head_commit.message, '[skip preview]') &&
-      !contains(github.event.head_commit.message, '[skip release]')
+      github.event_name == 'workflow_dispatch' ||
+      (
+        contains(github.event.head_commit.message, '[release]') &&
+        !contains(github.event.head_commit.message, '[skip release]')
+      )
 
     runs-on: ubuntu-latest
 
@@ -75,22 +79,80 @@ jobs:
         if: steps.tag.outputs.exists != 'true'
         run: |
           PREV_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | grep -Ev "dev|beta|alpha|rc" | sort -V | tail -n 1)
+          CURR_TAG="${{ steps.asset.outputs.tag }}"
+          VERSION="${{ steps.asset.outputs.version }}"
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          CHANGES_FILE=$(mktemp)
+          COMMITS_FILE=$(mktemp)
 
           if [ -n "$PREV_TAG" ]; then
-            npx -y conventional-changelog-cli -p angular \
-              --from "$PREV_TAG" \
-              --to HEAD \
-              --tag-prefix v \
-              > RELEASE_NOTES.md
+            LOG_RANGE="$PREV_TAG..HEAD"
+            BASE_LABEL="$PREV_TAG"
+            COMPARE_RANGE="${PREV_TAG}...${CURR_TAG}"
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/compare/${COMPARE_RANGE}"
           else
-            npx -y conventional-changelog-cli -p angular \
-              --tag-prefix v \
-              > RELEASE_NOTES.md
+            LOG_RANGE="HEAD"
+            BASE_LABEL="None"
+            COMPARE_RANGE="${CURR_TAG}"
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}"
           fi
 
-          if [ ! -s RELEASE_NOTES.md ]; then
-            echo "No changelog entries." > RELEASE_NOTES.md
+          git log "$LOG_RANGE" --pretty=format:"%s" > "$COMMITS_FILE" || true
+
+          while IFS= read -r subject || [ -n "$subject" ]; do
+            case "$subject" in
+              Merge*) continue ;;
+            esac
+
+          title=$(printf '%s' "$subject" | sed -E 's/[[:space:]]*\[release\].*$//')
+            [ -z "$title" ] && continue
+
+            type=$(printf '%s' "$title" | sed -nE 's/^([a-z]+)(\([^)]+\))?(!)?:[[:space:]]+.*/\1/p')
+            text=$(printf '%s' "$title" | sed -E 's/^[a-z]+(\([^)]+\))?(!)?:[[:space:]]+//')
+            [ -z "$type" ] && type="other"
+
+            printf '%s\t%s\n' "$type" "$text" >> "$CHANGES_FILE"
+          done < "$COMMITS_FILE"
+
+          {
+            echo "## EdgeDL v${VERSION}"
+            echo ""
+            echo "**Channel:** Preview  "
+            echo "**Commit:** \`${SHORT_SHA}\`  "
+            echo "**Base:** \`${BASE_LABEL}\`"
+            echo ""
+            echo "## Changelog"
+          } > RELEASE_NOTES.md
+
+          append_group() {
+            type="$1"
+            heading="$2"
+            items=$(awk -F '\t' -v type="$type" '$1 == type { print "- " $2 }' "$CHANGES_FILE")
+            [ -z "$items" ] && return
+
+            echo "" >> RELEASE_NOTES.md
+            echo "### $heading" >> RELEASE_NOTES.md
+            printf '%s\n' "$items" >> RELEASE_NOTES.md
+          }
+
+          append_group feat "Features"
+          append_group fix "Bug Fixes"
+          append_group perf "Performance"
+          append_group refactor "Refactoring"
+          append_group docs "Documentation"
+          append_group style "Styles"
+          append_group ci "CI"
+          append_group test "Tests"
+          append_group chore "Chores"
+          append_group other "Other Changes"
+
+          if ! grep -q '^### ' RELEASE_NOTES.md; then
+            echo "" >> RELEASE_NOTES.md
+            echo "No preview changes found." >> RELEASE_NOTES.md
           fi
+
+          echo "" >> RELEASE_NOTES.md
+          echo "**Full Changelog:** [\`${COMPARE_RANGE}\`](${COMPARE_URL})" >> RELEASE_NOTES.md
 
       - name: Create preview release
         if: steps.tag.outputs.exists != 'true'
