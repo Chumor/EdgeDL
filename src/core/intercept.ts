@@ -4,8 +4,10 @@
  */
 import { requestDownload } from './download';
 import { isDownloadLink } from './detector';
+import { showToast } from '../components/toast';
+import { extractUrlFromOnclick } from '../utils';
 
-let skipSite = false;
+let interceptEnabled = false;
 let bridgeAttached = false;
 
 type PageWindow = Window & typeof globalThis;
@@ -25,7 +27,7 @@ function normalizeUrl(input: unknown) {
 }
 
 function tryInterceptNavigation(input: unknown) {
-    if (skipSite) return false;
+    if (!interceptEnabled) return false;
 
     const url = normalizeUrl(input);
     if (!url || !isDownloadLink(url)) return false;
@@ -48,7 +50,7 @@ export async function setInterceptSites(list: string[]) {
         typeof i === 'string' ? i.toLowerCase() : String(i).toLowerCase()
     );
     await GM_setValue(KEY, normalized);
-    skipSite = normalized.includes(location.hostname.toLowerCase());
+    interceptEnabled = normalized.includes(location.hostname.toLowerCase());
     return normalized;
 }
 
@@ -79,13 +81,69 @@ export async function toggleSiteIntercept() {
     return added;
 }
 
-// 接管页面脚本触发的下载跳转：window.open、location.assign/replace、动态 a.click。
+// 挂载点击拦截器
+function attachClickInterceptor() {
+    document.addEventListener('click', handleClick, true);
+}
+
+/**
+ * 拦截器核心逻辑
+ * @param {MouseEvent} e 事件对象
+ */
+async function handleClick(e: MouseEvent) {
+    // @ts-ignore: 自定义属性拦截
+    if (e._edgedl_handled) return;
+    // @ts-ignore
+    e._edgedl_handled = true;
+
+    const target = e.target as HTMLElement;
+    if (target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
+
+    const link = target?.closest?.('a, [onclick]') as HTMLAnchorElement | HTMLElement;
+    if (!link) return;
+
+    let url = (link as HTMLAnchorElement).href || '';
+
+    if (
+        !url ||
+        url === '#' ||
+        url === '##' ||
+        url.startsWith('javascript:')
+    ) {
+        const onclick = (link as HTMLElement).getAttribute('onclick')
+            || link.closest('[onclick]')?.getAttribute('onclick');
+
+        if (onclick) {
+            url = extractUrlFromOnclick(onclick) || '';
+        }
+    }
+
+    if (!url || !isDownloadLink(url)) return;
+
+    // 命中接管排除策略：跳过 EdgeDL 接管并提示，交还浏览器默认行为
+    if (await isSiteIntercepted()) {
+        showToast('已跳过接管', { type: 'info', duration: 1500 });
+        return; 
+    }
+
+    // 阻止浏览器原生下载与页面跳转
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    await requestDownload(url);
+}
+
+
+// 接管页面脚本触发的下载跳转
 export function attachPageBridgeInterceptor() {
     if (bridgeAttached) return;
     bridgeAttached = true;
 
+    attachClickInterceptor();
+
     void isSiteIntercepted().then((value) => {
-        skipSite = value;
+        interceptEnabled = value;
     });
 
     const pageWindow = getPageWindow();
