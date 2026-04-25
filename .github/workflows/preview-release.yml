@@ -1,24 +1,25 @@
-name: Release Userscript
+name: Preview Release Userscript
 
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - "src/**"
       - "package.json"
       - "package-lock.json"
       - "rollup.config.*"
       - "tsconfig.json"
-      - ".github/workflows/release.yml"
+      - ".github/workflows/preview-release.yml"
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  preview_release:
     if: |
-      startsWith(github.event.head_commit.message, 'chore(release): v') &&
+      contains(github.event.head_commit.message, '[release]') &&
+      !contains(github.event.head_commit.message, '[skip preview]') &&
       !contains(github.event.head_commit.message, '[skip release]')
 
     runs-on: ubuntu-latest
@@ -42,25 +43,13 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Prepare release asset
+      - name: Prepare preview asset
         id: asset
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          VERSION="${BASE_VERSION}-dev.${SHORT_SHA}"
           TAG="v${VERSION}"
-          EXPECTED_SUBJECT="chore(release): ${TAG}"
-          COMMIT_SUBJECT=$(git log -1 --pretty=%s)
-
-          if [ "$COMMIT_SUBJECT" != "$EXPECTED_SUBJECT" ]; then
-            echo "Release commit subject mismatch."
-            echo "Expected: $EXPECTED_SUBJECT"
-            echo "Actual:   $COMMIT_SUBJECT"
-            exit 1
-          fi
-
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists."
-            exit 1
-          fi
 
           sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${VERSION}|" dist/EdgeDL.user.js
 
@@ -71,7 +60,19 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "path=${FILE}" >> "$GITHUB_OUTPUT"
 
+      - name: Check existing preview tag
+        id: tag
+        run: |
+          TAG="${{ steps.asset.outputs.tag }}"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate changelog
+        if: steps.tag.outputs.exists != 'true'
         run: |
           PREV_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | grep -Ev "dev|beta|alpha|rc" | sort -V | tail -n 1)
 
@@ -91,7 +92,8 @@ jobs:
             echo "No changelog entries." > RELEASE_NOTES.md
           fi
 
-      - name: Create release
+      - name: Create preview release
+        if: steps.tag.outputs.exists != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -99,4 +101,10 @@ jobs:
             "${{ steps.asset.outputs.path }}" \
             --title "${{ steps.asset.outputs.tag }}" \
             --notes-file RELEASE_NOTES.md \
-            --target "$GITHUB_SHA"
+            --target "$GITHUB_SHA" \
+            --prerelease
+
+      - name: Skip existing preview release
+        if: steps.tag.outputs.exists == 'true'
+        run: |
+          echo "Tag ${{ steps.asset.outputs.tag }} already exists. Skipping preview release."
