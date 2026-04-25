@@ -1,0 +1,172 @@
+name: Preview Release Userscript
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - dev
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rollup.config.*"
+      - "tsconfig.json"
+      - ".github/workflows/preview-release.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  preview_release:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        contains(github.event.head_commit.message, '[release]') &&
+        !contains(github.event.head_commit.message, '[skip release]')
+      )
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Prepare preview asset
+        id: asset
+        run: |
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          VERSION="${BASE_VERSION}-dev.${SHORT_SHA}"
+          TAG="v${VERSION}"
+
+          sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${VERSION}|" dist/EdgeDL.user.js
+
+          FILE="dist/EdgeDL-v${VERSION}.user.js"
+          cp dist/EdgeDL.user.js "$FILE"
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "path=${FILE}" >> "$GITHUB_OUTPUT"
+
+      - name: Check existing preview tag
+        id: tag
+        run: |
+          TAG="${{ steps.asset.outputs.tag }}"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate changelog
+        if: steps.tag.outputs.exists != 'true'
+        run: |
+          PREV_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | grep -Ev "dev|beta|alpha|rc" | sort -V | tail -n 1)
+          CURR_TAG="${{ steps.asset.outputs.tag }}"
+          VERSION="${{ steps.asset.outputs.version }}"
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          CHANGES_FILE=$(mktemp)
+          COMMITS_FILE=$(mktemp)
+
+          if [ -n "$PREV_TAG" ]; then
+            LOG_RANGE="$PREV_TAG..HEAD"
+            BASE_LABEL="$PREV_TAG"
+            COMPARE_RANGE="${PREV_TAG}...${CURR_TAG}"
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/compare/${COMPARE_RANGE}"
+          else
+            LOG_RANGE="HEAD"
+            BASE_LABEL="None"
+            COMPARE_RANGE="${CURR_TAG}"
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}"
+          fi
+
+          git log "$LOG_RANGE" --pretty=format:"%s" > "$COMMITS_FILE" || true
+
+          while IFS= read -r subject || [ -n "$subject" ]; do
+            case "$subject" in
+              Merge*) continue ;;
+            esac
+
+          title=$(printf '%s' "$subject" | sed -E 's/[[:space:]]*\[release\].*$//')
+            [ -z "$title" ] && continue
+
+            type=$(printf '%s' "$title" | sed -nE 's/^([a-z]+)(\([^)]+\))?(!)?:[[:space:]]+.*/\1/p')
+            text=$(printf '%s' "$title" | sed -E 's/^[a-z]+(\([^)]+\))?(!)?:[[:space:]]+//')
+            [ -z "$type" ] && type="other"
+
+            printf '%s\t%s\n' "$type" "$text" >> "$CHANGES_FILE"
+          done < "$COMMITS_FILE"
+
+          {
+            echo "## EdgeDL v${VERSION}"
+            echo ""
+            echo "**Channel:** Preview  "
+            echo "**Commit:** \`${SHORT_SHA}\`  "
+            echo "**Base:** \`${BASE_LABEL}\`"
+            echo ""
+            echo "## Changelog"
+          } > RELEASE_NOTES.md
+
+          append_group() {
+            type="$1"
+            heading="$2"
+            items=$(awk -F '\t' -v type="$type" '$1 == type { print "- " $2 }' "$CHANGES_FILE")
+            [ -z "$items" ] && return
+
+            echo "" >> RELEASE_NOTES.md
+            echo "### $heading" >> RELEASE_NOTES.md
+            printf '%s\n' "$items" >> RELEASE_NOTES.md
+          }
+
+          append_group feat "Features"
+          append_group fix "Bug Fixes"
+          append_group perf "Performance"
+          append_group refactor "Refactoring"
+          append_group docs "Documentation"
+          append_group style "Styles"
+          append_group ci "CI"
+          append_group test "Tests"
+          append_group chore "Chores"
+          append_group other "Other Changes"
+
+          if ! grep -q '^### ' RELEASE_NOTES.md; then
+            echo "" >> RELEASE_NOTES.md
+            echo "No preview changes found." >> RELEASE_NOTES.md
+          fi
+
+          echo "" >> RELEASE_NOTES.md
+          echo "**Full Changelog:** [\`${COMPARE_RANGE}\`](${COMPARE_URL})" >> RELEASE_NOTES.md
+
+      - name: Create preview release
+        if: steps.tag.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.asset.outputs.tag }}" \
+            "${{ steps.asset.outputs.path }}" \
+            --title "${{ steps.asset.outputs.tag }}" \
+            --notes-file RELEASE_NOTES.md \
+            --target "$GITHUB_SHA" \
+            --prerelease
+
+      - name: Skip existing preview release
+        if: steps.tag.outputs.exists == 'true'
+        run: |
+          echo "Tag ${{ steps.asset.outputs.tag }} already exists. Skipping preview release."

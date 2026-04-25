@@ -1,23 +1,50 @@
-name: Build
+name: Build Userscript
 
 on:
-  push:
-    branches: [dev, main]
-  pull_request:
   workflow_dispatch:
+
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rollup.config.*"
+      - "tsconfig.json"
+      - ".github/workflows/build.yml"
+
+  pull_request:
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rollup.config.*"
+      - "tsconfig.json"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    if: |
+      !contains(github.event.head_commit.message || '', '[skip build]')
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -25,33 +52,30 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Inject version for dev build
-        if: github.ref_name == 'dev'
-        id: inject
-        run: |
-          BASE_VERSION=$(node -p "require('./package.json').version")
-
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          FULL_VERSION="${BASE_VERSION}-dev+${SHORT_SHA}"
-
-          sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${FULL_VERSION}|" dist/EdgeDL.user.js
-
-          echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Resolve artifact name
+      - name: Prepare artifact file
         id: artifact
         run: |
-          if [ -n "${{ steps.inject.outputs.full_version }}" ]; then
-            VERSION="${{ steps.inject.outputs.full_version }}"
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+
+          if [ "${GITHUB_REF_NAME}" = "main" ] && [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            VERSION="${BASE_VERSION}"
           else
-            VERSION=$(node -p "require('./package.json').version")
+            VERSION="${BASE_VERSION}-dev.${SHORT_SHA}"
           fi
 
-          NAME="EdgeDL-build-${VERSION}"
-          echo "name=$NAME" >> $GITHUB_OUTPUT
+          sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${VERSION}|" dist/EdgeDL.user.js
 
-      - name: Upload build artifact
+          FILE="dist/EdgeDL-v${VERSION}.user.js"
+          cp dist/EdgeDL.user.js "$FILE"
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "path=${FILE}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload userscript artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.artifact.outputs.name }}
-          path: dist/EdgeDL.user.js
+          path: ${{ steps.artifact.outputs.path }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 7

@@ -1,130 +1,83 @@
-name: Release
+name: Release Userscript
 
 on:
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: "Whether to publish a release"
-        required: true
-        default: "true"
-        type: choice
-        options: ["true", "false"]
-
-  pull_request:
-    types: [closed]
-    branches:
-      - dev
-      - main
-
   push:
     branches:
-      - dev
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rollup.config.*"
+      - "tsconfig.json"
+      - ".github/workflows/release.yml"
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 jobs:
   release:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || github.event_name == 'push'
+    if: |
+      startsWith(github.event.head_commit.message, 'chore(release): v') &&
+      !contains(github.event.head_commit.message, '[skip release]')
 
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
-    env:
-      MIN_RELEASE_COMMITS: 3
-
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - uses: actions/setup-node@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: npm
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Resolve Base Version
-        id: base
+      - name: Build
+        run: npm run build
+
+      - name: Prepare release asset
+        id: asset
         run: |
-          BASE=$(node -p "require('./package.json').version")
-          echo "base=$BASE" >> $GITHUB_OUTPUT
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          EXPECTED_SUBJECT="chore(release): ${TAG}"
+          COMMIT_SUBJECT=$(git log -1 --pretty=%s)
 
-      - name: Resolve Channel Version
-        id: version
-        run: |
-          BASE="${{ steps.base.outputs.base }}"
-          SHA=$(git rev-parse --short HEAD)
-
-
-          BRANCH="${GITHUB_REF_NAME}"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH="${{ github.event.pull_request.base.ref }}"
+          if [ "$COMMIT_SUBJECT" != "$EXPECTED_SUBJECT" ]; then
+            echo "Release commit subject mismatch."
+            echo "Expected: $EXPECTED_SUBJECT"
+            echo "Actual:   $COMMIT_SUBJECT"
+            exit 1
           fi
 
-          echo "Branch: $BRANCH"
-
-          if [ "$BRANCH" = "dev" ]; then
-            LAST=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
-
-            if [ -z "$LAST" ]; then
-              N=0
-            else
-              N=$(echo "$LAST" | sed -E 's/.*-beta\.([0-9]+).*/\1/')
-            fi
-
-            VERSION="${BASE}-beta.$((N + 1))+${SHA}"
-            PRERELEASE=true
-          else
-            VERSION="${BASE}"
-            PRERELEASE=false
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists."
+            exit 1
           fi
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+          sed -i -E "s|//[[:space:]]*@version[[:space:]]+.*|// @version      ${VERSION}|" dist/EdgeDL.user.js
 
-      - name: Inject Version Header
+          FILE="dist/EdgeDL-v${VERSION}.user.js"
+          cp dist/EdgeDL.user.js "$FILE"
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "path=${FILE}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
         run: |
-          awk -v ver="${{ steps.version.outputs.version }}" '
-          BEGIN { found=0 }
-          /@version/ {
-            printf "// @version      %s\n", ver
-            found=1
-            next
-          }
-          { print }
-          END {
-            if (!found) printf "// @version      %s\n", ver
-          }' dist/EdgeDL.user.js > dist/EdgeDL.tmp \
-          && mv dist/EdgeDL.tmp dist/EdgeDL.user.js
+          PREV_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | grep -Ev "dev|beta|alpha|rc" | sort -V | tail -n 1)
 
-      - name: Generate Changelog
-        run: |
-          BRANCH="${GITHUB_REF_NAME}"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH="${{ github.event.pull_request.base.ref }}"
-          fi
-
-          echo "Branch: $BRANCH"
-
-          if [ "$BRANCH" = "dev" ]; then
-            echo "Using beta tags"
-            LAST_TAG=$(git tag -l "v*-beta.*" | sort -V | tail -n 1)
-          else
-            echo "Using stable tags"
-            LAST_TAG=$(git tag -l "v[0-9]*" | grep -v beta | sort -V | tail -n 1)
-          fi
-
-          echo "Last tag: $LAST_TAG"
-
-          if [ -n "$LAST_TAG" ]; then
+          if [ -n "$PREV_TAG" ]; then
             npx -y conventional-changelog-cli -p angular \
-              --from $LAST_TAG \
+              --from "$PREV_TAG" \
               --to HEAD \
               --tag-prefix v \
               > RELEASE_NOTES.md
@@ -134,80 +87,16 @@ jobs:
               > RELEASE_NOTES.md
           fi
 
-      - name: Check for New Commits
-        id: check_commits
-        run: |
-          BASE="${{ steps.base.outputs.base }}"
-          BRANCH="${GITHUB_REF_NAME}"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH="${{ github.event.pull_request.base.ref }}"
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No changelog entries." > RELEASE_NOTES.md
           fi
 
-
-          if [ "$BRANCH" = "dev" ]; then
-            LAST_TAG=$(git tag -l "v${BASE}-beta.*" | sort -V | tail -n 1)
-          else
-            LAST_TAG=$(git tag -l "v${BASE}" | grep -v beta | sort -V | tail -n 1)
-          fi
-
-          if [ -n "$LAST_TAG" ]; then
-            COMMITS=$(git rev-list $LAST_TAG..HEAD --count)
-          else
-            COMMITS=$(git rev-list HEAD --count)
-          fi
-
-          echo "Commits since last tag: $COMMITS"
-          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
-
-      - name: Conditional Release
-        id: create_release
-        if: |
-          (steps.check_commits.outputs.commits >= env.MIN_RELEASE_COMMITS || github.event_name == 'workflow_dispatch') && 
-          (github.event_name == 'push' || github.event.inputs.publish == 'true' || github.event.pull_request.merged == true)
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
-          body_path: RELEASE_NOTES.md
-          files: dist/EdgeDL.user.js
-          prerelease: ${{ steps.version.outputs.prerelease }}
-          generate_release_notes: false
-
-      - name: Set release status and URL
-        if: steps.create_release.outcome == 'success'
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "RELEASE_STATUS=Generated" >> $GITHUB_ENV
-          echo "RELEASE_URL=https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_ENV
-
-      - name: Skip Release if No Commits
-        if: steps.check_commits.outputs.commits < env.MIN_RELEASE_COMMITS && github.event_name != 'workflow_dispatch'
-        run: |
-          echo "Insufficient commits (${{ steps.check_commits.outputs.commits }}/${{ env.MIN_RELEASE_COMMITS }}). Skipping."
-          exit 0
-
-      - name: Write release info to summary
-        if: always()
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          PRERELEASE="${{ steps.version.outputs.prerelease }}"
-          COMMITS="${{ steps.check_commits.outputs.commits }}"
-
-          if [ "${COMMITS}" == "0" ]; then
-            STATUS="Skipped (no new commits)"
-            RELEASE_URL="N/A"
-          else
-            STATUS="${RELEASE_STATUS:-Skipped}"
-            RELEASE_URL="${RELEASE_URL:-N/A}"
-          fi
-
-          {
-            echo "## Release Summary"
-            echo ""
-            echo "| Item                       | Details                         |"
-            echo "|:---------------------------|:--------------------------------|"
-            echo "| **Version**                | $VERSION |"
-            echo "| **Prerelease**             | $PRERELEASE |"
-            echo "| **Commits since last tag** | $COMMITS |"
-            echo "| **Release Status**         | $STATUS |"
-            echo "| **Release URL**            | [link]($RELEASE_URL) |"
-          } >> $GITHUB_STEP_SUMMARY
+          gh release create "${{ steps.asset.outputs.tag }}" \
+            "${{ steps.asset.outputs.path }}" \
+            --title "${{ steps.asset.outputs.tag }}" \
+            --notes-file RELEASE_NOTES.md \
+            --target "$GITHUB_SHA"
