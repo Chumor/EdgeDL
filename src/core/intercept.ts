@@ -1,7 +1,38 @@
 /**
  * @module core/intercept
- * @description 接管控制模块：管理站点是否允许 EdgeDL 接管下载行为。
+ * @description 接管控制模块：管理站点是否允许 EdgeDL 接管下载行为，并接管页面脚本触发的下载跳转。
  */
+import { requestDownload } from './download';
+import { isDownloadLink } from './detector';
+
+let skipSite = false;
+let bridgeAttached = false;
+
+type PageWindow = Window & typeof globalThis;
+
+function getPageWindow() {
+    return ((globalThis as typeof globalThis & { unsafeWindow?: PageWindow }).unsafeWindow || window) as PageWindow;
+}
+
+function normalizeUrl(input: unknown) {
+    if (!input) return '';
+    try {
+        const url = new URL(String(input), location.href).href;
+        return url.startsWith('http') ? url : '';
+    } catch {
+        return '';
+    }
+}
+
+function tryInterceptNavigation(input: unknown) {
+    if (skipSite) return false;
+
+    const url = normalizeUrl(input);
+    if (!url || !isDownloadLink(url)) return false;
+
+    void requestDownload(url);
+    return true;
+}
 
 const KEY = 'edgedl-site-intercept';
 
@@ -17,6 +48,7 @@ export async function setInterceptSites(list: string[]) {
         typeof i === 'string' ? i.toLowerCase() : String(i).toLowerCase()
     );
     await GM_setValue(KEY, normalized);
+    skipSite = normalized.includes(location.hostname.toLowerCase());
     return normalized;
 }
 
@@ -45,4 +77,41 @@ export async function toggleSiteIntercept() {
 
     await setInterceptSites(list);
     return added;
+}
+
+// 接管页面脚本触发的下载跳转：window.open、location.assign/replace、动态 a.click。
+export function attachPageBridgeInterceptor() {
+    if (bridgeAttached) return;
+    bridgeAttached = true;
+
+    void isSiteIntercepted().then((value) => {
+        skipSite = value;
+    });
+
+    const pageWindow = getPageWindow();
+
+    const originalOpen = pageWindow.open;
+    pageWindow.open = function patchedOpen(url?: string | URL, target?: string, features?: string) {
+        if (tryInterceptNavigation(url)) return null;
+        return originalOpen.call(pageWindow, url, target, features);
+    } as typeof window.open;
+
+    try {
+        const originalClick = pageWindow.HTMLAnchorElement.prototype.click;
+        pageWindow.HTMLAnchorElement.prototype.click = function patchedClick(this: HTMLAnchorElement) {
+            if (tryInterceptNavigation(this.href)) return;
+            return originalClick.call(this);
+        };
+    } catch {}
+
+    (['assign', 'replace'] as const).forEach((method) => {
+        try {
+            const original = pageWindow.Location.prototype[method];
+            (pageWindow.Location.prototype as unknown as Record<typeof method, typeof original>)[method] =
+                function patchedLocation(this: Location, url: string | URL) {
+                    if (tryInterceptNavigation(url)) return;
+                    return original.call(this, url);
+                } as typeof original;
+        } catch {}
+    });
 }

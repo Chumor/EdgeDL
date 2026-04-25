@@ -7,12 +7,13 @@ import { extractUrlFromOnclick } from './utils';
 import { requestDownload } from './core/download';
 import { registerMenu } from './components/menu';
 import { showToast } from './components/toast';
-import { isSiteIntercepted } from './core/intercept';
+import { attachPageBridgeInterceptor, isSiteIntercepted } from './core/intercept';
 import { initSjqqHandler } from './handlers/sjqq';
 import { initDeepSeekHandler } from './handlers/deepseek';
 
 // 初始化下载接管
 function init() {
+    attachPageBridgeInterceptor();
     registerMenu();
     initSjqqHandler();
     initDeepSeekHandler();

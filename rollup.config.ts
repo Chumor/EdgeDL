@@ -18,6 +18,7 @@ const userscriptHeader =
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
+// @grant        unsafeWindow
 // @license      Apache-2.0
 // @run-at       document-start
 // @website      https://scriptcat.org/zh-CN/script-show-page/5391
