@@ -104,7 +104,9 @@ jobs:
               Merge*) continue ;;
             esac
 
-          title=$(printf '%s' "$subject" | sed -E 's/[[:space:]]*\[release\].*$//')
+            title=$(printf '%s' "$subject" \
+              | sed -E 's/[[:space:]]*\[release\].*$//' \
+              | sed -E 's/[[:space:]]+-[[:space:]].*$//')
             [ -z "$title" ] && continue
 
             type=$(printf '%s' "$title" | sed -nE 's/^([a-z]+)(\([^)]+\))?(!)?:[[:space:]]+.*/\1/p')
