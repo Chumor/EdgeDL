@@ -7,7 +7,8 @@ import { isDownloadLink } from './detector';
 import { showToast } from '../components/toast';
 import { extractUrlFromOnclick } from '../utils';
 
-let interceptEnabled = false;
+let interceptEnabled = true;
+let downloadGestureUntil = 0;
 let bridgeAttached = false;
 
 type PageWindow = Window & typeof globalThis;
@@ -30,8 +31,10 @@ function tryInterceptNavigation(input: unknown) {
     if (!interceptEnabled) return false;
 
     const url = normalizeUrl(input);
-    if (!url || !isDownloadLink(url)) return false;
-
+    const inDownloadGesture = Date.now() <= downloadGestureUntil;
+    if (!url || (!isDownloadLink(url) && !inDownloadGesture)) return false;
+ 
+    downloadGestureUntil = 0;
     void requestDownload(url);
     return true;
 }
@@ -50,7 +53,7 @@ export async function setInterceptSites(list: string[]) {
         typeof i === 'string' ? i.toLowerCase() : String(i).toLowerCase()
     );
     await GM_setValue(KEY, normalized);
-    interceptEnabled = normalized.includes(location.hostname.toLowerCase());
+    interceptEnabled = !normalized.includes(location.hostname.toLowerCase());
     return normalized;
 }
 
@@ -98,6 +101,10 @@ async function handleClick(e: MouseEvent) {
 
     const target = e.target as HTMLElement;
     if (target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
+ 
+    if (target?.closest?.('[class*="download" i], [id*="download" i]')) {
+        downloadGestureUntil = Date.now() + 1500;
+    }
 
     const link = target?.closest?.('a, [onclick]') as HTMLAnchorElement | HTMLElement;
     if (!link) return;
@@ -143,7 +150,7 @@ export function attachPageBridgeInterceptor() {
     attachClickInterceptor();
 
     void isSiteIntercepted().then((value) => {
-        interceptEnabled = value;
+        interceptEnabled = !value;
     });
 
     const pageWindow = getPageWindow();
