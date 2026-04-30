@@ -1,6 +1,6 @@
 /**
  * @module core/config
- * @description 全局配置中心：管理下载器包名映射、持久化键值对及链接识别规则库。
+ * @description 全局配置中心：管理下载器包名映射及持久化键值对。
  */
 
 /**
@@ -43,28 +43,3 @@ export function resetDefaultDownloader() {
     selectedDownloader = DEFAULT_DOWNLOADER;
     GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
 }
-
-// 下载链接关键字匹配
-export const EXTENSIONS = [
-    '.apk','.apks','.xapk','.apkm','.ipa','.obb','.aab',
-    '.zip','.rar','.7z','.tar','.gz','.tgz','.bz2','.xz',
-    '.iso','.cab','.jar','.z',
-    '.mp4','.mkv','.avi','.mov','.flv','.wmv','.webm',
-    '.m4v','.3gp','.ts','.mpg','.mpeg','.vob',
-    '.mp3','.flac','.wav','.ogg','.m4a','.aac','.wma','.ape',
-    '.pdf','.epub','.mobi','.azw3','.djvu',
-    '.doc','.docx','.xls','.xlsx','.ppt','.pptx',
-    '.exe','.msi','.bin','.dat','.dmg','.bat','.sh','.img',
-    '.torrent'
-];
-
-// 下载链接后缀匹配
-export const KEYWORDS = [
-    '/down/','/download/','/downloads/','/dl/','/fetch/',
-    '/files/','/file/','/attach/','/attachment/','/media/','/static/',
-    '/assets/','/cdn/','/dist/','/repo/','/backup/','/upload/',
-    '/releases/download/','/binary/','/pkg/',
-    '?file=','&file=','?filename=','&filename=',
-    'download?','&download=','?download=','&download=',
-    'force_download','response-content-disposition=','content-disposition=attachment'
-];
