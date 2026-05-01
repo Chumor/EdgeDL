@@ -4,11 +4,12 @@
  */
 import { openDownload } from '../adapter/factory';
 import { showDownloadPicker } from '../components/download-picker';
+import { DEFAULT_DOWNLOADER_KEY } from './config';
 
 export async function requestDownload(url: string) {
     if(!url) return;
 
-    const dl = await GM_getValue('edgedl-default-downloader');
+    const dl = await GM_getValue(DEFAULT_DOWNLOADER_KEY);
 
     if(dl){
         return openDownload(url, dl as string);

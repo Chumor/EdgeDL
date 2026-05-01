@@ -17,6 +17,11 @@ function getPageWindow() {
     return ((globalThis as typeof globalThis & { unsafeWindow?: PageWindow }).unsafeWindow || window) as PageWindow;
 }
 
+function isInvalidNavigationUrl(url: string) {
+    const value = url.trim().toLowerCase();
+    return !value || value === '#' || value === '##' || value.startsWith('javascript:');
+}
+
 function normalizeUrl(input: unknown) {
     if (!input) return '';
     try {
@@ -119,12 +124,7 @@ async function handleClick(e: MouseEvent) {
             || '';
     }
 
-    if (
-        !url ||
-        url === '#' ||
-        url === '##' ||
-        url.startsWith('javascript:')
-    ) {
+    if (isInvalidNavigationUrl(url)) {
         const onclick = link
             ? (link as HTMLElement).getAttribute('onclick') || link.closest('[onclick]')?.getAttribute('onclick')
             : target?.closest?.('[onclick]')?.getAttribute('onclick');
@@ -135,7 +135,7 @@ async function handleClick(e: MouseEvent) {
     }
 
     if (
-        (!url || url === '#' || url === '##' || url.startsWith('javascript:')) &&
+        isInvalidNavigationUrl(url) &&
         downloadTrigger &&
         isDownloadLink(location.href)
     ) {

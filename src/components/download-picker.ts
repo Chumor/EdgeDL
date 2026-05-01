@@ -2,11 +2,9 @@
  * @module components/download-picker
  * @description 交互式分发控制器：提供可视化 UI 供用户选择下载目标，并处理下载器偏好设置的持久化逻辑。
  */
-import { DOWNLOADERS } from '../core/config';
-import { getEdgeDLVersion } from '../core/config';
+import { DEFAULT_DOWNLOADER_KEY, DOWNLOADERS, getEdgeDLVersion } from '../core/config';
 import { downloaderIcons } from './assets/icons';
 
-const DEFAULT_KEY = 'edgedl-default-downloader';
 const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
 
 export async function showDownloadPicker(
@@ -216,7 +214,7 @@ export async function showDownloadPicker(
     }
 
     // 读取默认下载器
-    const defaultDownloader = await GM_getValue<string | null>(DEFAULT_KEY, null);
+    const defaultDownloader = await GM_getValue<string | null>(DEFAULT_DOWNLOADER_KEY, null);
     const defaultCheckbox = picker.querySelector('#edgedl-set-default') as HTMLInputElement;
     if (defaultCheckbox) defaultCheckbox.checked = !!defaultDownloader;
 
@@ -231,7 +229,7 @@ export async function showDownloadPicker(
         if (defaultCheckbox.checked) {
             await GM_setValue(DEFAULT_PENDING_KEY, true);
         } else {
-            await GM_deleteValue(DEFAULT_KEY);
+            await GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
             await GM_deleteValue(DEFAULT_PENDING_KEY);
         }
     });
@@ -247,24 +245,24 @@ export async function showDownloadPicker(
             if (pkg === 'edge') {
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
             } else if (defaultCheckbox.checked || pending) {
-                await GM_setValue(DEFAULT_KEY, pkg);
+                await GM_setValue(DEFAULT_DOWNLOADER_KEY, pkg);
                 await GM_deleteValue(DEFAULT_PENDING_KEY);
             }
 
             if (mode === 'config') {
                 if (typeof callback === 'function') callback(pkg);
-                gotoClose();
+                gotoClose(false);
                 return;
             }
 
             if (typeof callback === 'function') callback(pkg);
-            gotoClose();
+            gotoClose(false);
         });
     });
 
-    function gotoClose() {
+    function gotoClose(cancelled = true) {
         if (picker.classList.contains('closing')) return;
-        if (typeof callback === 'function') callback(null);
+        if (cancelled && typeof callback === 'function') callback(null);
         picker.classList.add('closing');
         const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
         card?.addEventListener('animationend', () => {
@@ -277,5 +275,5 @@ export async function showDownloadPicker(
         }, { once: true });
     }
 
-    picker.querySelector('.edgedl-bg')?.addEventListener('click', gotoClose);
+    picker.querySelector('.edgedl-bg')?.addEventListener('click', () => gotoClose());
 }
