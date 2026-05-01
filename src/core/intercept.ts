@@ -106,10 +106,14 @@ async function handleClick(e: MouseEvent) {
         downloadGestureUntil = Date.now() + 1500;
     }
 
-    const link = target?.closest?.('a, [onclick]') as HTMLAnchorElement | HTMLElement;
+    const link = target?.closest?.('a, [onclick], [data-ng-href], [data-href], [data-url]') as HTMLAnchorElement | HTMLElement;
     if (!link) return;
 
-    let url = (link as HTMLAnchorElement).href || '';
+    let url = (link as HTMLAnchorElement).href
+        || link.getAttribute('data-ng-href')
+        || link.getAttribute('data-href')
+        || link.getAttribute('data-url')
+        || '';
 
     if (
         !url ||

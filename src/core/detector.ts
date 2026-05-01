@@ -35,6 +35,8 @@ const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|
 const REDIRECT_DOWNLOAD_PAGES = [
     // 腾讯游戏下载跳转页
     /\/zlkdatasys\/mct\/d\/[^/?#]+\.shtml(?:[?#].*)?$/i,
+    // 豌豆荚、九游下载跳转页
+    /\/game\/downs_\d+_\d+\.html(?:[?#].*)?$/i,
 ];
 
 // 下载链接检测
