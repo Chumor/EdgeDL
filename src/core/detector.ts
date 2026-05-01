@@ -34,7 +34,7 @@ const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|
 // 下载跳转页匹配
 const REDIRECT_DOWNLOAD_PAGES = [
     // 腾讯游戏
-    /\/zlkdatasys\/mct\/d\/[^/?#]+\.shtml(?:[?#].*)?$/i,
+    /\/zlkdatasys\/mct\/(?:d\/[^/?#]+|proj_\d+\/download)\.shtml(?:[?#].*)?$/i,
     // 豌豆荚、九游
     /\/game\/downs_\d+_\d+\.html(?:[?#].*)?$/i,
     // 应用宝
@@ -50,6 +50,10 @@ export function isDownloadLink(url: string) {
 
     // 排除非下载页面
     if (EXCLUDE_PATHS.test(lowerUrl)) return false;
+
+    // 排除类 Unix 目录路径
+    if (/\/data\/data\/[^?#]*$/i.test(lowerUrl)) return false;
+
 
     // 下载跳转页匹配
     if (REDIRECT_DOWNLOAD_PAGES.some(pattern => pattern.test(lowerUrl))) return true;
