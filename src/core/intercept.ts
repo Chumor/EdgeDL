@@ -62,7 +62,7 @@ export async function setInterceptSites(list: string[]) {
     return normalized;
 }
 
-// 判断当前站点是否允许接管
+// 判断当前站点是否已跳过接管
 export async function isSiteIntercepted() {
     const host = location.hostname.toLowerCase();
     const list = await getInterceptSites();

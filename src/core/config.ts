@@ -17,29 +17,10 @@ export const DOWNLOADERS = {
 
 // 默认下载器
 export const DEFAULT_DOWNLOADER_KEY = 'edgedl-default-downloader';
-export const DEFAULT_DOWNLOADER = DOWNLOADERS.IDM;
 
 // 版本信息
 export function getEdgeDLVersion() {
     return (typeof GM_info !== 'undefined' && GM_info.script?.version) 
         ? GM_info.script.version 
         : 'dev';
-}
-
-// 当前选中的下载器
-export let selectedDownloader = GM_getValue(
-    DEFAULT_DOWNLOADER_KEY,
-    DEFAULT_DOWNLOADER
-);
-
-// 设置默认下载器
-export function setDefaultDownloader(pkg: string) {
-    selectedDownloader = pkg;
-    GM_setValue(DEFAULT_DOWNLOADER_KEY, pkg);
-}
-
-// 重置默认下载器
-export function resetDefaultDownloader() {
-    selectedDownloader = DEFAULT_DOWNLOADER;
-    GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
 }

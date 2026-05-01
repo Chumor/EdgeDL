@@ -5,15 +5,12 @@
 import { DEFAULT_DOWNLOADER_KEY, DOWNLOADERS, getEdgeDLVersion } from '../core/config';
 import { downloaderIcons } from './assets/icons';
 
-const DEFAULT_PENDING_KEY = 'edgedl-default-pending';
-
 export async function showDownloadPicker(
-    callback: (pkg: string | null) => void,
-    mode = 'download'
+    callback: (pkg: string | null) => void
 ) {
     if (document.getElementById('edgedl-picker')) {
         callback(null);
-         return;
+        return;
     }
 
     const picker = document.createElement('div');
@@ -27,7 +24,7 @@ export async function showDownloadPicker(
                 <button data-pkg="${DOWNLOADERS.IDM}">
                     <img src="${downloaderIcons.IDM}" /> 1DM
                 </button>
-                <button data-pkg="${DOWNLOADERS.IDM_PLUS || DOWNLOADERS.IDM}">
+                <button data-pkg="${DOWNLOADERS.IDM_PLUS}">
                     <img src="${downloaderIcons.IDM_PLUS}" /> 1DM+
                 </button>
                 <button data-pkg="${DOWNLOADERS.ADM}">
@@ -224,13 +221,10 @@ export async function showDownloadPicker(
         if (defaultBtn) defaultBtn.classList.add('selected');
     }
 
-    // 当复选框变化时立即保存或清除“待设置”标志
+    // 取消勾选时清除默认下载器
     defaultCheckbox.addEventListener('change', async () => {
-        if (defaultCheckbox.checked) {
-            await GM_setValue(DEFAULT_PENDING_KEY, true);
-        } else {
+        if (!defaultCheckbox.checked) {
             await GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
-            await GM_deleteValue(DEFAULT_PENDING_KEY);
         }
     });
 
@@ -238,31 +232,22 @@ export async function showDownloadPicker(
     picker.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
             const pkg = btn.dataset.pkg || '';
-            const pending = await GM_getValue(DEFAULT_PENDING_KEY, false);
 
-            // 若复选框已勾选或之前标记为“待设置”，保存为默认
-
+           // 按当前选择更新默认下载器
             if (pkg === 'edge') {
-                await GM_deleteValue(DEFAULT_PENDING_KEY);
-            } else if (defaultCheckbox.checked || pending) {
+                await GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
+            } else if (defaultCheckbox.checked) {
                 await GM_setValue(DEFAULT_DOWNLOADER_KEY, pkg);
-                await GM_deleteValue(DEFAULT_PENDING_KEY);
             }
 
-            if (mode === 'config') {
-                if (typeof callback === 'function') callback(pkg);
-                gotoClose(false);
-                return;
-            }
-
-            if (typeof callback === 'function') callback(pkg);
+            callback(pkg);
             gotoClose(false);
         });
     });
 
     function gotoClose(cancelled = true) {
         if (picker.classList.contains('closing')) return;
-        if (cancelled && typeof callback === 'function') callback(null);
+        if (cancelled) callback(null);
         picker.classList.add('closing');
         const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
         card?.addEventListener('animationend', () => {

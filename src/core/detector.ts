@@ -24,7 +24,7 @@ export const KEYWORDS = [
     '/assets/','/cdn/','/dist/','/repo/','/backup/','/upload/',
     '/releases/download/','/binary/','/pkg/',
     '?file=','&file=','?filename=','&filename=',
-    'download?','&download=','?download=','&download=',
+    'download?','&download=','?download=',
     'force_download','response-content-disposition=','content-disposition=attachment'
 ];
 
