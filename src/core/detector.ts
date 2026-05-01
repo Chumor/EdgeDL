@@ -3,7 +3,7 @@
  * @description 链接分析引擎：基于黑名单路径、文件后缀及特征关键字实现下载意图识别。
  */
 
-// 下载链接关键字匹配
+// 下载文件后缀匹配
 export const EXTENSIONS = [
     '.apk','.apks','.xapk','.apkm','.ipa','.obb','.aab',
     '.zip','.rar','.7z','.tar','.gz','.tgz','.bz2','.xz',
@@ -17,7 +17,7 @@ export const EXTENSIONS = [
     '.torrent'
 ];
 
-// 下载链接后缀匹配
+// 下载链接特征匹配
 export const KEYWORDS = [
     '/down/','/download/','/downloads/','/dl/','/fetch/',
     '/files/','/file/','/attach/','/attachment/','/media/','/static/',
@@ -28,6 +28,15 @@ export const KEYWORDS = [
     'force_download','response-content-disposition=','content-disposition=attachment'
 ];
 
+// 非下载页面排除规则
+const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|blob|src|tree)\//i;
+
+// 下载跳转页匹配
+const REDIRECT_DOWNLOAD_PAGES = [
+    // 腾讯游戏下载跳转页
+    /\/zlkdatasys\/mct\/d\/[^/?#]+\.shtml(?:[?#].*)?$/i,
+];
+
 // 下载链接检测
 export function isDownloadLink(url: string) {
     if(url?.includes('sourceforge.net/projects/') && url.includes('/files/')) return false;
@@ -35,8 +44,10 @@ export function isDownloadLink(url: string) {
     const lowerUrl = url.toLowerCase();
 
     // 排除非下载页面
-    const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|blob|src|tree)\//i;
     if (EXCLUDE_PATHS.test(lowerUrl)) return false;
+
+    // 下载跳转页匹配
+    if (REDIRECT_DOWNLOAD_PAGES.some(pattern => pattern.test(lowerUrl))) return true;
 
     // 后缀匹配
     try {
