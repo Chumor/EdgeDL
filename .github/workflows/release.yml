@@ -78,6 +78,9 @@ jobs:
             | head -n 1)
           echo "Previous stable tag: ${PREV_TAG:-<none>}"
 
+          git tag --list 'v[0-9]*.[0-9]*.[0-9]*-*' \
+            | xargs -r git tag -d
+
           if [ -n "$PREV_TAG" ]; then
             npx -y conventional-changelog-cli -p angular \
               --from "$PREV_TAG" \
