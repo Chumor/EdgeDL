@@ -74,6 +74,12 @@ export async function showDownloadPicker(
             pointer-events: none;
             contain: layout style paint;
             isolation: isolate;
+            --edgedl-move-easing: cubic-bezier(0, 0, 0.2, 1);
+            --edgedl-fade-easing: cubic-bezier(0.4, 0, 0.2, 1);
+            --edgedl-exit-easing: cubic-bezier(0.4, 0, 1, 1);
+            --edgedl-enter-duration: 300ms;
+            --edgedl-fade-duration: 200ms;
+            --edgedl-exit-duration: 200ms;
         }
 
         #edgedl-picker .edgedl-bg {
@@ -82,8 +88,9 @@ export async function showDownloadPicker(
             background: rgba(0, 0, 0, 0.42);
             backdrop-filter: blur(12px) saturate(140%);
             -webkit-backdrop-filter: blur(12px) saturate(140%);
-            animation: edgedl-fade-in 0.18s ease-out;
+            animation: edgedl-fade-in var(--edgedl-fade-duration) var(--edgedl-fade-easing) both;
             pointer-events: auto;
+            will-change: opacity;
         }
 
         #edgedl-picker .edgedl-card {
@@ -97,7 +104,9 @@ export async function showDownloadPicker(
             display: flex;
             flex-direction: column;
             align-items: center;
-            animation: edgedl-slide-up 0.22s ease-out;
+            animation: edgedl-slide-up var(--edgedl-enter-duration) var(--edgedl-move-easing) both;
+            transform-origin: center bottom;
+            will-change: opacity, transform;
             pointer-events: auto;
             box-sizing: border-box;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -182,7 +191,7 @@ export async function showDownloadPicker(
         }
 
         @keyframes edgedl-slide-up {
-            from { opacity: 0; transform: translateY(18px) scale(0.98); }
+            from { opacity: 0; transform: translateY(24px) scale(0.96); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
@@ -193,15 +202,24 @@ export async function showDownloadPicker(
 
         @keyframes edgedl-slide-down {
             from { opacity: 1; transform: translateY(0) scale(1); }
-            to { opacity: 0; transform: translateY(18px) scale(0.98); }
+            to { opacity: 0; transform: translateY(12px) scale(0.98); }
         }
 
         #edgedl-picker.closing .edgedl-bg {
-            animation: edgedl-fade-out 0.16s ease-in forwards;
+            animation: edgedl-fade-out var(--edgedl-exit-duration) var(--edgedl-exit-easing) forwards;
         }
 
         #edgedl-picker.closing .edgedl-card {
-            animation: edgedl-slide-down 0.18s ease-in forwards;
+            animation: edgedl-slide-down var(--edgedl-exit-duration) var(--edgedl-exit-easing) forwards;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #edgedl-picker .edgedl-bg,
+            #edgedl-picker .edgedl-card,
+            #edgedl-picker.closing .edgedl-bg,
+            #edgedl-picker.closing .edgedl-card {
+                animation-duration: 1ms;
+            }
         }
     `;
     const styleId = 'edgedl-picker-style';
@@ -249,15 +267,28 @@ export async function showDownloadPicker(
         if (picker.classList.contains('closing')) return;
         if (cancelled) callback(null);
         picker.classList.add('closing');
-        const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
-        card?.addEventListener('animationend', () => {
+
+        let removed = false;
+        const removePicker = () => {
+            if (removed) return;
+            removed = true;
             if (window.visualViewport) {
                 window.visualViewport.removeEventListener('resize', layoutPicker);
                 window.visualViewport.removeEventListener('scroll', layoutPicker);
             }
             picker.remove();
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
-        }, { once: true });
+        };
+
+        const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
+        const onAnimationEnd = (event: AnimationEvent) => {
+            if (event.target !== card) return;
+            card.removeEventListener('animationend', onAnimationEnd);
+            removePicker();
+        };
+
+        card?.addEventListener('animationend', onAnimationEnd);
+        window.setTimeout(removePicker, 260);
     }
 
     picker.querySelector('.edgedl-bg')?.addEventListener('click', () => gotoClose());
