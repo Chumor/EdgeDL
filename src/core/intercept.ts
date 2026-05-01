@@ -102,18 +102,22 @@ async function handleClick(e: MouseEvent) {
     const target = e.target as HTMLElement;
     if (target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
  
-    if (target?.closest?.('[class*="download" i], [id*="download" i]')) {
+    const downloadTrigger = target?.closest?.('[class*="download" i], [id*="download" i], [dt-eid*="download" i]');
+    if (downloadTrigger) {
         downloadGestureUntil = Date.now() + 1500;
     }
 
-    const link = target?.closest?.('a, [onclick], [data-ng-href], [data-href], [data-url]') as HTMLAnchorElement | HTMLElement;
-    if (!link) return;
+    const link = target?.closest?.('a, [onclick], [data-ng-href], [data-href], [data-url]') as HTMLAnchorElement | HTMLElement | null;
+    let url = '';
 
-    let url = (link as HTMLAnchorElement).href
-        || link.getAttribute('data-ng-href')
-        || link.getAttribute('data-href')
-        || link.getAttribute('data-url')
-        || '';
+    if (link) {
+        url = link.getAttribute('href')
+            || link.getAttribute('data-ng-href')
+            || link.getAttribute('data-href')
+            || link.getAttribute('data-url')
+            || (link as HTMLAnchorElement).href
+            || '';
+    }
 
     if (
         !url ||
@@ -121,12 +125,23 @@ async function handleClick(e: MouseEvent) {
         url === '##' ||
         url.startsWith('javascript:')
     ) {
-        const onclick = (link as HTMLElement).getAttribute('onclick')
-            || link.closest('[onclick]')?.getAttribute('onclick');
+        const onclick = link
+            ? (link as HTMLElement).getAttribute('onclick') || link.closest('[onclick]')?.getAttribute('onclick')
+            : target?.closest?.('[onclick]')?.getAttribute('onclick');
 
         if (onclick) {
             url = extractUrlFromOnclick(onclick) || '';
         }
+    }
+
+    if (
+        (!url || url === '#' || url === '##' || url.startsWith('javascript:')) &&
+        downloadTrigger &&
+        isDownloadLink(location.href)
+    ) {
+        url = location.href;
+    } else {
+        url = normalizeUrl(url);
     }
 
     if (!url || !isDownloadLink(url)) return;

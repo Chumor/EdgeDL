@@ -4,14 +4,12 @@
  */
 import { registerMenu } from './components/menu';
 import { attachPageBridgeInterceptor } from './core/intercept';
-import { initSjqqHandler } from './handlers/sjqq';
 import { initDeepSeekHandler } from './handlers/deepseek';
 
 // 初始化下载接管
 function init() {
     attachPageBridgeInterceptor();
     registerMenu();
-    initSjqqHandler();
     initDeepSeekHandler();
 } 
 init();
