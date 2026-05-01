@@ -18,7 +18,7 @@ permissions:
 jobs:
   release:
     if: |
-      startsWith(github.event.head_commit.message, 'chore(release): v') &&
+      startsWith(github.event.head_commit.message, 'chore(release):') &&
       !contains(github.event.head_commit.message, '[skip release]')
 
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           TAG="v${VERSION}"
-          EXPECTED_SUBJECT="chore(release): ${TAG}"
+          EXPECTED_SUBJECT="chore(release): ${VERSION}"
           COMMIT_SUBJECT=$(git log -1 --pretty=%s)
 
           if [ "$COMMIT_SUBJECT" != "$EXPECTED_SUBJECT" ]; then
@@ -57,7 +57,7 @@ jobs:
             exit 1
           fi
 
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "Tag $TAG already exists."
             exit 1
           fi
@@ -73,17 +73,22 @@ jobs:
 
       - name: Generate changelog
         run: |
-          PREV_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" | grep -Ev "dev|beta|alpha|rc" | sort -V | tail -n 1)
+          PREV_TAG=$(git tag --merged HEAD --sort=-v:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+            | head -n 1)
+          echo "Previous stable tag: ${PREV_TAG:-<none>}"
 
           if [ -n "$PREV_TAG" ]; then
             npx -y conventional-changelog-cli -p angular \
               --from "$PREV_TAG" \
               --to HEAD \
               --tag-prefix v \
+              --skip-unstable \
               > RELEASE_NOTES.md
           else
             npx -y conventional-changelog-cli -p angular \
               --tag-prefix v \
+              --skip-unstable \
               > RELEASE_NOTES.md
           fi
 
