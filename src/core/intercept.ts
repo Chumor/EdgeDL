@@ -98,7 +98,7 @@ function attachClickInterceptor() {
  * 拦截器核心逻辑
  * @param {MouseEvent} e 事件对象
  */
-async function handleClick(e: MouseEvent) {
+function handleClick(e: MouseEvent) {
     // @ts-ignore: 自定义属性拦截
     if (e._edgedl_handled) return;
     // @ts-ignore
@@ -147,7 +147,7 @@ async function handleClick(e: MouseEvent) {
     if (!url || !isDownloadLink(url)) return;
 
     // 命中接管排除策略：跳过 EdgeDL 接管并提示，交还浏览器默认行为
-    if (await isSiteIntercepted()) {
+    if (!interceptEnabled) {
         showToast('已跳过接管', { type: 'info', duration: 1500 });
         return; 
     }
@@ -157,7 +157,7 @@ async function handleClick(e: MouseEvent) {
     e.stopPropagation();
     e.stopImmediatePropagation();
 
-    await requestDownload(url);
+    void requestDownload(url);
 }
 
 
