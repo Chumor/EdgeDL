@@ -15,7 +15,9 @@ export async function showDownloadPicker(
 
     const picker = document.createElement('div');
     picker.id = 'edgedl-picker';
-    picker.innerHTML = `
+
+    const shadow = picker.attachShadow({ mode: 'open' });
+    shadow.innerHTML = `
         <div class="edgedl-bg"></div>
         <div class="edgedl-card">
             <h3>选择下载器</h3>
@@ -51,7 +53,7 @@ export async function showDownloadPicker(
     const layoutPicker = () => {
         const vvp = window.visualViewport;
         const w = vvp ? vvp.width : document.documentElement.clientWidth;
-        const card = picker.querySelector('.edgedl-card') as HTMLDivElement | null;
+        const card = shadow.querySelector('.edgedl-card') as HTMLDivElement | null;
         if (card) card.style.maxWidth = (w - 32) + 'px';
     };
     layoutPicker();
@@ -63,7 +65,7 @@ export async function showDownloadPicker(
 
     const style = document.createElement('style');
     style.textContent = `
-        #edgedl-picker {
+        :host {
             all: initial;
             position: fixed;
             inset: 0;
@@ -82,18 +84,24 @@ export async function showDownloadPicker(
             --edgedl-exit-duration: 200ms;
         }
 
-        #edgedl-picker .edgedl-bg {
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        .edgedl-bg {
             position: absolute;
             inset: 0;
             background: rgba(0, 0, 0, 0.42);
-            backdrop-filter: blur(12px) saturate(140%);
-            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            backdrop-filter: blur(25px) saturate(140%);
+            -webkit-backdrop-filter: blur(25px) saturate(140%);
             animation: edgedl-fade-in var(--edgedl-fade-duration) var(--edgedl-fade-easing) both;
             pointer-events: auto;
             will-change: opacity;
         }
 
-        #edgedl-picker .edgedl-card {
+        .edgedl-card {
             position: relative;
             background: #fff;
             border-radius: 24px;
@@ -115,14 +123,14 @@ export async function showDownloadPicker(
             -webkit-font-smoothing: antialiased;
         }
 
-        #edgedl-picker h3 {
+        h3 {
             margin: 8px 0 18px 0;
             font-weight: 600;
             font-size: 16px;
             color: #333;
         }
 
-        #edgedl-picker .edgedl-version-tag {
+        .edgedl-version-tag {
             position: absolute;
             top: 10px;
             right: 12px;
@@ -139,14 +147,14 @@ export async function showDownloadPicker(
             border: 1px solid rgba(0, 0, 0, 0.02);
         }
 
-        #edgedl-picker .edgedl-options {
+        .edgedl-options {
             display: flex;
             flex-direction: column;
             width: 100%;
             gap: 12px;
         }
 
-        #edgedl-picker .edgedl-options button {
+        .edgedl-options button {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -159,27 +167,31 @@ export async function showDownloadPicker(
             transition: background 0.2s;
         }
 
-        #edgedl-picker .edgedl-options button:hover {
+        .edgedl-options button:hover {
             background: #e0e0e0;
         }
 
-        #edgedl-picker .edgedl-options img {
+        .edgedl-options img {
             width: 24px;
             height: 24px;
         }
 
-        #edgedl-picker .edgedl-options button.selected {
+        .edgedl-options button.selected {
             outline: 2px solid #4CAF50;
         }
 
         @media (prefers-color-scheme: dark) {
-            #edgedl-picker .edgedl-card {
+            .edgedl-card {
                 background: #292929;
                 color: #FFFFFF;
                 box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
             }
 
-            #edgedl-picker .edgedl-options button {
+            h3 {
+                color: #F5F5F5;
+            }
+
+            .edgedl-options button {
                 background: #383838;
                 color: #FFFFFF;
             }
@@ -205,37 +217,33 @@ export async function showDownloadPicker(
             to { opacity: 0; transform: translateY(12px) scale(0.98); }
         }
 
-        #edgedl-picker.closing .edgedl-bg {
+        :host(.closing) .edgedl-bg {
             animation: edgedl-fade-out var(--edgedl-exit-duration) var(--edgedl-exit-easing) forwards;
         }
 
-        #edgedl-picker.closing .edgedl-card {
+        :host(.closing) .edgedl-card {
             animation: edgedl-slide-down var(--edgedl-exit-duration) var(--edgedl-exit-easing) forwards;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            #edgedl-picker .edgedl-bg,
-            #edgedl-picker .edgedl-card,
-            #edgedl-picker.closing .edgedl-bg,
-            #edgedl-picker.closing .edgedl-card {
+            .edgedl-bg,
+            .edgedl-card,
+            :host(.closing) .edgedl-bg,
+            :host(.closing) .edgedl-card {
                 animation-duration: 1ms;
             }
         }
     `;
-    const styleId = 'edgedl-picker-style';
-    if (!document.getElementById(styleId)) {
-        style.id = styleId;
-        document.head.appendChild(style);
-    }
+    shadow.appendChild(style);
 
     // 读取默认下载器
     const defaultDownloader = await GM_getValue<string | null>(DEFAULT_DOWNLOADER_KEY, null);
-    const defaultCheckbox = picker.querySelector('#edgedl-set-default') as HTMLInputElement;
+    const defaultCheckbox = shadow.querySelector('#edgedl-set-default') as HTMLInputElement;
     if (defaultCheckbox) defaultCheckbox.checked = !!defaultDownloader;
 
     if (defaultDownloader) {
         // 高亮默认下载器按钮
-        const defaultBtn = picker.querySelector(`button[data-pkg="${defaultDownloader}"]`) as HTMLButtonElement | null;
+        const defaultBtn = shadow.querySelector(`button[data-pkg="${defaultDownloader}"]`) as HTMLButtonElement | null;
         if (defaultBtn) defaultBtn.classList.add('selected');
     }
 
@@ -247,7 +255,7 @@ export async function showDownloadPicker(
     });
 
     // 点击唤起
-    picker.querySelectorAll('button').forEach(btn => {
+    shadow.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
             const pkg = btn.dataset.pkg || '';
 
@@ -280,7 +288,7 @@ export async function showDownloadPicker(
             window.dispatchEvent(new CustomEvent('edgedl:picker-closed'));
         };
 
-        const card = picker.querySelector('.edgedl-card') as HTMLDivElement;
+        const card = shadow.querySelector('.edgedl-card') as HTMLDivElement;
         const onAnimationEnd = (event: AnimationEvent) => {
             if (event.target !== card) return;
             card.removeEventListener('animationend', onAnimationEnd);
@@ -291,5 +299,5 @@ export async function showDownloadPicker(
         window.setTimeout(removePicker, 260);
     }
 
-    picker.querySelector('.edgedl-bg')?.addEventListener('click', () => gotoClose());
+    shadow.querySelector('.edgedl-bg')?.addEventListener('click', () => gotoClose());
 }
