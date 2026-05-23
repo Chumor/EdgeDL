@@ -185,7 +185,8 @@ export async function showDownloadPicker(
         }
 
         .edgedl-options button.selected {
-            outline: 2px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.12);
+            outline: 1.5px solid rgba(76, 175, 80, 0.72);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -202,6 +203,11 @@ export async function showDownloadPicker(
             .edgedl-options button {
                 background: #383838;
                 color: #FFFFFF;
+            }
+
+            #edgedl-picker .edgedl-options button.selected {
+                background: rgba(129, 199, 132, 0.16);
+                outline-color: rgba(129, 199, 132, 0.82);
             }
         }
 
@@ -259,6 +265,7 @@ export async function showDownloadPicker(
     defaultCheckbox.addEventListener('change', async () => {
         if (!defaultCheckbox.checked) {
             await GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
+            shadow.querySelector('button.selected')?.classList.remove('selected');
         }
     });
 
