@@ -15,6 +15,7 @@ export async function showDownloadPicker(
 
     const picker = document.createElement('div');
     picker.id = 'edgedl-picker';
+    picker.classList.add('initializing');
 
     const shadow = picker.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
@@ -99,6 +100,13 @@ export async function showDownloadPicker(
             animation: edgedl-fade-in var(--edgedl-fade-duration) var(--edgedl-fade-easing) both;
             pointer-events: auto;
             will-change: opacity;
+        }
+
+        :host(.initializing) .edgedl-bg,
+        :host(.initializing) .edgedl-card {
+            pointer-events: none;
+            user-select: none;
+            cursor: wait;
         }
 
         .edgedl-card {
@@ -270,6 +278,8 @@ export async function showDownloadPicker(
             gotoClose(false);
         });
     });
+
+    picker.classList.remove('initializing');
 
     function gotoClose(cancelled = true) {
         if (picker.classList.contains('closing')) return;
