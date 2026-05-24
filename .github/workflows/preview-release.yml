@@ -200,6 +200,7 @@ jobs:
         run: |
           gh release upload platform-sync \
             dist/EdgeDL.user.js \
+            dist/EdgeDL.meta.js \
             dist/EdgeDL.scriptcat.user.js \
             dist/EdgeDL.greasyfork.user.js \
             --clobber

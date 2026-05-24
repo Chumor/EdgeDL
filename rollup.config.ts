@@ -25,7 +25,7 @@ const userscriptHeader =
 // @website      https://scriptcat.org/zh-CN/script-show-page/5391
 // @supportURL   https://github.com/Chumor/EdgeDL/issues
 // @downloadURL  https://github.com/Chumor/EdgeDL/releases/download/platform-sync/EdgeDL.user.js
-// @updateURL    https://github.com/Chumor/EdgeDL/releases/download/platform-sync/EdgeDL.user.js
+// @updateURL    https://github.com/Chumor/EdgeDL/releases/download/platform-sync/EdgeDL.meta.js
 // @resource     icon_idm       https://cdn.jsdelivr.net/gh/Chumor/EdgeDL@main/assets/icons/idm.svg
 // @resource     icon_idm_plus  https://cdn.jsdelivr.net/gh/Chumor/EdgeDL@main/assets/icons/idm-plus.svg
 // @resource     icon_adm       https://cdn.jsdelivr.net/gh/Chumor/EdgeDL@main/assets/icons/adm.svg

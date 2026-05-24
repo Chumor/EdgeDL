@@ -29,6 +29,19 @@ function upsertMeta(script, key, value) {
   return script.replace(endMarker, `${line}\n${endMarker}`);
 }
 
+function buildMetaScript(sourcePath, script) {
+  const endMarker = '// ==/UserScript==';
+  const endIndex = script.indexOf(endMarker);
+  if (endIndex < 0) {
+    throw new Error(`Missing userscript header end marker: ${endMarker}`);
+  }
+
+  const output = sourcePath.replace(/\.user\.js$/i, '.meta.js');
+  fs.mkdirSync(path.dirname(output), { recursive: true });
+  fs.writeFileSync(output, `${script.slice(0, endIndex + endMarker.length)}\n`);
+  console.log(`Generated ${output}`);
+}
+
 function buildPlatformScript(platformName, platform) {
   if (!platform.output) {
     throw new Error(`Missing output for platform: ${platformName}`);
@@ -53,6 +66,8 @@ function buildPlatformScript(platformName, platform) {
 if (!config.source) {
   throw new Error('Missing source in platform meta config');
 }
+
+buildMetaScript(config.source, source);
 
 if (!config.platforms || typeof config.platforms !== 'object') {
   throw new Error('Missing platforms in platform meta config');
