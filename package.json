@@ -4,9 +4,10 @@
   "description": "EdgeDL：让 Android Edge 浏览器使用外部下载器下载文件",
   "author": "Chumor",
   "license": "Apache-2.0",
-  "main": "rollup.config.mjs",
+  "main": "rollup.config.ts",
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "build:platform": "node scripts/build-platform-userscripts.mjs"
   },
   "type": "module",
   "devDependencies": {

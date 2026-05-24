@@ -1,0 +1,16 @@
+{
+  "syncReleaseTag": "platform-sync",
+  "source": "dist/EdgeDL.user.js",
+  "platforms": {
+    "scriptcat": {
+      "output": "dist/EdgeDL.scriptcat.user.js",
+      "downloadURL": "https://scriptcat.org/scripts/code/5391/EdgeDL.user.js",
+      "updateURL": "https://scriptcat.org/scripts/code/5391/EdgeDL.user.js"
+    },
+    "greasyfork": {
+      "output": "dist/EdgeDL.greasyfork.user.js",
+      "downloadURL": "https://update.greasyfork.org/scripts/565958/EdgeDL.user.js",
+      "updateURL": "https://update.greasyfork.org/scripts/565958/EdgeDL.user.js"
+    }
+  }
+}

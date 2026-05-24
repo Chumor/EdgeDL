@@ -12,6 +12,8 @@ on:
       - "package-lock.json"
       - "rollup.config.*"
       - "tsconfig.json"
+      - "scripts/build-platform-userscripts.mjs"
+      - "scripts/platform-meta.json"
       - ".github/workflows/preview-release.yml"
 
 permissions:
@@ -63,6 +65,9 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "path=${FILE}" >> "$GITHUB_OUTPUT"
+
+      - name: Build platform sync assets
+        run: npm run build:platform
 
       - name: Generate changelog
         run: |
@@ -188,3 +193,13 @@ jobs:
             --notes-file RELEASE_NOTES.md \
             --target "$GITHUB_SHA" \
             --prerelease
+
+      - name: Upload platform sync assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload platform-sync \
+            dist/EdgeDL.user.js \
+            dist/EdgeDL.scriptcat.user.js \
+            dist/EdgeDL.greasyfork.user.js \
+            --clobber
