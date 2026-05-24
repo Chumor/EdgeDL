@@ -11,7 +11,11 @@ function escapeRegExp(value) {
 }
 
 function formatMetaLine(key, value) {
-  return `// @${key.padEnd(13, ' ')}${value}`;
+  if (value === true || value === '') {
+    return `// @${key}`;
+  }
+
+  return `// @${key.padEnd(13, ' ')}${String(value)}`;
 }
 
 function upsertMeta(script, key, value) {
@@ -55,6 +59,15 @@ function buildPlatformScript(platformName, platform) {
 
   if (platform.updateURL) {
     script = upsertMeta(script, 'updateURL', platform.updateURL);
+  }
+
+  if (platform.metadata && typeof platform.metadata === 'object') {
+    for (const [key, value] of Object.entries(platform.metadata)) {
+      if (value === false || value == null) {
+        continue;
+      }
+      script = upsertMeta(script, key, value);
+    }
   }
 
   fs.mkdirSync(path.dirname(platform.output), { recursive: true });

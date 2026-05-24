@@ -5,7 +5,10 @@
     "scriptcat": {
       "output": "dist/EdgeDL.scriptcat.user.js",
       "downloadURL": "https://scriptcat.org/scripts/code/5391/EdgeDL.user.js",
-      "updateURL": "https://scriptcat.org/scripts/code/5391/EdgeDL.meta.js"
+      "updateURL": "https://scriptcat.org/scripts/code/5391/EdgeDL.meta.js",
+      "metadata": {
+        "early-start": true
+      }
     },
     "greasyfork": {
       "output": "dist/EdgeDL.greasyfork.user.js",
