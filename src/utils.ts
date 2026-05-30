@@ -26,5 +26,13 @@ export function extractUrlFromOnclick(onclick: string): string | null {
         return match[1];
     }
 
+    // 尝试从函数调用中提取参数，例如：downloadAndroidAPP()
+    // 如果 onclick 中包含函数名但没有直接 URL，可能需要额外处理
+    // 这里保留原有逻辑，但增加对常见下载函数名的识别提示
+    if (/download|android|app/i.test(onclick)) {
+        // 这是一个潜在的下载触发器，但无法从中提取 URL
+        // 可以在此处添加自定义逻辑来处理特定的函数调用
+    }
+
     return null;
 }

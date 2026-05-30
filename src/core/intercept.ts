@@ -3,7 +3,7 @@
  * @description 接管控制模块：管理站点是否允许 EdgeDL 接管下载行为，并接管页面脚本触发的下载跳转。
  */
 import { requestDownload } from './download';
-import { isDownloadLink } from './detector';
+import { isDownloadLink, isAndroidAppDownload } from './detector';
 import { showToast } from '../components/toast';
 import { extractUrlFromOnclick } from '../utils';
 
@@ -107,7 +107,7 @@ function handleClick(e: MouseEvent) {
     const target = e.target as HTMLElement;
     if (target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
  
-    const downloadTrigger = target?.closest?.('[class*="download" i], [id*="download" i], [dt-eid*="download" i]');
+    const downloadTrigger = target?.closest?.('[class*="download" i], [id*="download" i], [dt-eid*="download" i], .dowloadItem');
     if (downloadTrigger) {
         downloadGestureUntil = Date.now() + 1500;
     }
@@ -131,6 +131,16 @@ function handleClick(e: MouseEvent) {
 
         if (onclick) {
             url = extractUrlFromOnclick(onclick) || '';
+        }
+        
+        // 如果仍然没有 URL，但点击的是下载触发器，尝试从页面中查找可能的下载链接
+        if (!url && downloadTrigger) {
+            // 检查是否有包含 Android 或 APP 相关文本的元素
+            const triggerElement = target?.closest?.('.dowloadItem, [class*="download" i], [id*="download" i]');
+            if (triggerElement instanceof HTMLElement && isAndroidAppDownload(triggerElement)) {
+                // 标记为下载手势，允许后续处理
+                downloadGestureUntil = Date.now() + 1500;
+            }
         }
     }
 

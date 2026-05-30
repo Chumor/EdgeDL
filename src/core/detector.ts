@@ -70,3 +70,19 @@ export function isDownloadLink(url: string) {
     // 关键字匹配
     return KEYWORDS.some(kw => lowerUrl.includes(kw));
 }
+
+// 检测是否为 Android APP 下载相关元素
+export function isAndroidAppDownload(element: HTMLElement): boolean {
+    const textContent = element.textContent?.toLowerCase() || '';
+    const className = element.className?.toLowerCase() || '';
+    const id = element.id?.toLowerCase() || '';
+    
+    // 检查是否包含 Android、APP、下载等关键词
+    const hasAndroidKeyword = textContent.includes('android') || className.includes('android') || id.includes('android');
+    const hasAppKeyword = textContent.includes('app') || className.includes('app') || id.includes('app');
+    const hasDownloadKeyword = textContent.includes('download') || textContent.includes('下载') || 
+                               className.includes('download') || className.includes('dowload') ||
+                               id.includes('download') || id.includes('dowload');
+    
+    return (hasAndroidKeyword || hasAppKeyword) && hasDownloadKeyword;
+}
