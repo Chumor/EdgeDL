@@ -32,12 +32,12 @@ function normalizeUrl(input: unknown) {
     }
 }
 
-function tryInterceptNavigation(input: unknown) {
+function tryInterceptNavigation(input: unknown, force = false) {
     if (!interceptEnabled) return false;
 
     const url = normalizeUrl(input);
     const inDownloadGesture = Date.now() <= downloadGestureUntil;
-    if (!url || (!isDownloadLink(url) && !inDownloadGesture)) return false;
+    if (!url || (!force && !isDownloadLink(url) && !inDownloadGesture)) return false;
  
     downloadGestureUntil = 0;
     void requestDownload(url);
@@ -198,4 +198,27 @@ export function attachPageBridgeInterceptor() {
                 } as typeof original;
         } catch {}
     });
+
+    // 拦截通过隐藏 <iframe> 动态唤起的下载行为
+    try {
+        const desc = Object.getOwnPropertyDescriptor(pageWindow.HTMLIFrameElement.prototype, 'src');
+        if (desc && desc.set) {
+            const originalSet = desc.set;
+            Object.defineProperty(pageWindow.HTMLIFrameElement.prototype, 'src', {
+                ...desc,
+                set: function patchedIframeSrc(this: HTMLIFrameElement, value: string) {
+                    if (value && isDownloadLink(value) && tryInterceptNavigation(value, true)) return;
+                    originalSet.call(this, value);
+                }
+            });
+        }
+
+        const originalSetAttribute = pageWindow.Element.prototype.setAttribute;
+        pageWindow.Element.prototype.setAttribute = function patchedSetAttribute(this: Element, name: string, value: string) {
+            if (this instanceof pageWindow.HTMLIFrameElement && name.toLowerCase() === 'src') {
+                if (value && isDownloadLink(value) && tryInterceptNavigation(value, true)) return;
+            }
+            return originalSetAttribute.call(this, name, value);
+        };
+    } catch {}
 }
