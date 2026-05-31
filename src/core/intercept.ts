@@ -112,13 +112,14 @@ function handleClick(e: MouseEvent) {
         downloadGestureUntil = Date.now() + 1500;
     }
 
-    const link = target?.closest?.('a, [onclick], [data-ng-href], [data-href], [data-url]') as HTMLAnchorElement | HTMLElement | null;
+    const link = target?.closest?.('a, [onclick], [data-ng-href], [data-href], [data-url], [data-gokey]') as HTMLAnchorElement | HTMLElement | null;
     let url = '';
 
     if (link) {
         url = link.getAttribute('href')
             || link.getAttribute('data-ng-href')
             || link.getAttribute('data-href')
+            || (link.getAttribute('data-gokey')?.match(/download_url=([^&]+)/)?.[1])
             || link.getAttribute('data-url')
             || (link as HTMLAnchorElement).href
             || '';

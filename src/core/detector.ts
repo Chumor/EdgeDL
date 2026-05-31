@@ -35,11 +35,6 @@ const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|
 const REDIRECT_DOWNLOAD_PAGES = [
     // 腾讯游戏
     /\/zlkdatasys\/mct\/(?:d\/[^/?#]+|proj_\d+\/download)\.shtml(?:[?#].*)?$/i,
-    // 豌豆荚、九游
-    /\/game\/downs_\d+_\d+\.html(?:[?#].*)?$/i,
-    // 应用宝
-    /\/\/sj\.qq\.com\/appdetail\/[^/?#]+(?:[?#].*)?$/i,
-    /\/\/sj\.qq\.com\/myapp\/detail\.htm\?[^#]*(?:apkname|pkgname)=/i,
 ];
 
 // 下载链接检测
