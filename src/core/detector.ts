@@ -20,7 +20,7 @@ export const EXTENSIONS = [
 // 下载链接特征匹配
 export const KEYWORDS = [
     '/down/','/download/','/downloads/','/dl/','/fetch/',
-    '/files/','/file/','/attach/','/attachment/','/media/','/static/',
+    '/files/','/file/','/attach/','/attachment/','/media/',
     '/assets/','/cdn/','/dist/','/repo/','/backup/','/upload/',
     '/releases/download/','/binary/','/pkg/',
     '?file=','&file=','?filename=','&filename=',
@@ -29,7 +29,7 @@ export const KEYWORDS = [
 ];
 
 // 非下载页面排除规则
-const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|blob|src|tree)\//i;
+const EXCLUDE_PATHS = /\/(login|reg(ister)?|sign(in|up|out)|logout|account|user|blob|src|tree)(?:[\/?#]|$)/i;
 
 // 下载跳转页匹配
 const REDIRECT_DOWNLOAD_PAGES = [

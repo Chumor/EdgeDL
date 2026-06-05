@@ -8,7 +8,6 @@ import { showToast } from '../components/toast';
 import { extractUrlFromOnclick } from '../utils';
 
 let interceptEnabled = true;
-let downloadGestureUntil = 0;
 let bridgeAttached = false;
 
 type PageWindow = Window & typeof globalThis;
@@ -32,14 +31,12 @@ function normalizeUrl(input: unknown) {
     }
 }
 
-function tryInterceptNavigation(input: unknown, force = false) {
+function tryInterceptNavigation(input: unknown) {
     if (!interceptEnabled) return false;
 
     const url = normalizeUrl(input);
-    const inDownloadGesture = Date.now() <= downloadGestureUntil;
-    if (!url || (!force && !isDownloadLink(url) && !inDownloadGesture)) return false;
+    if (!url || !isDownloadLink(url)) return false;
  
-    downloadGestureUntil = 0;
     void requestDownload(url);
     return true;
 }
@@ -108,9 +105,6 @@ function handleClick(e: MouseEvent) {
     if (target?.closest?.('label.hope-checkbox, .hope-checkbox, .hope-checkbox__control, input[type="checkbox"]')) return;
  
     const downloadTrigger = target?.closest?.('[class*="download" i], [id*="download" i], [dt-eid*="download" i]');
-    if (downloadTrigger) {
-        downloadGestureUntil = Date.now() + 1500;
-    }
 
     const link = target?.closest?.('a, [onclick], [data-ng-href], [data-href], [data-url], [data-gokey]') as HTMLAnchorElement | HTMLElement | null;
     let url = '';
@@ -208,7 +202,7 @@ export function attachPageBridgeInterceptor() {
             Object.defineProperty(pageWindow.HTMLIFrameElement.prototype, 'src', {
                 ...desc,
                 set: function patchedIframeSrc(this: HTMLIFrameElement, value: string) {
-                    if (value && isDownloadLink(value) && tryInterceptNavigation(value, true)) return;
+                    if (value && isDownloadLink(value) && tryInterceptNavigation(value)) return;
                     originalSet.call(this, value);
                 }
             });
@@ -217,7 +211,7 @@ export function attachPageBridgeInterceptor() {
         const originalSetAttribute = pageWindow.Element.prototype.setAttribute;
         pageWindow.Element.prototype.setAttribute = function patchedSetAttribute(this: Element, name: string, value: string) {
             if (this instanceof pageWindow.HTMLIFrameElement && name.toLowerCase() === 'src') {
-                if (value && isDownloadLink(value) && tryInterceptNavigation(value, true)) return;
+                if (value && isDownloadLink(value) && tryInterceptNavigation(value)) return;
             }
             return originalSetAttribute.call(this, name, value);
         };
