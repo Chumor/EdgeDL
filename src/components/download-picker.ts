@@ -274,7 +274,7 @@ export async function showDownloadPicker(
         btn.addEventListener('click', async () => {
             const pkg = btn.dataset.pkg || '';
 
-           // 按当前选择更新默认下载器
+            // 按当前选择更新默认下载器
             if (pkg === 'edge') {
                 await GM_deleteValue(DEFAULT_DOWNLOADER_KEY);
             } else if (defaultCheckbox.checked) {

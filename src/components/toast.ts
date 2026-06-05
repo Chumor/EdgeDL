@@ -97,16 +97,14 @@ function getTheme() {
  * @param {number} [options.duration=900] - 持续展示时间 (ms)
  * @param {'info' | 'error'} [options.type='info'] - 通知语义类型，决定视觉特征与图标
  */
-export function showToast(message: string, options: { duration?: number, type?: string } = {}) {
+export function showToast(message: string, options: { duration?: number, type?: 'info' | 'error' } = {}) {
     try {
         injectStyle();
-
-        const finalOptions = typeof options === 'number' ? { duration: options } : options;
 
         const {
             duration = 900,
             type = 'info'
-        } = finalOptions;
+        } = options;
 
         if (activeToast) activeToast.remove();
 

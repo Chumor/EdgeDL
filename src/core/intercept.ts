@@ -75,7 +75,7 @@ export async function toggleSiteIntercept() {
     const host = location.hostname.toLowerCase();
     const list = await getInterceptSites();
 
-    let added;
+    let added: boolean;
     const index = list.findIndex(item => (item as string).toLowerCase() === host);
     if (index >= 0) {
         list.splice(index, 1);
@@ -99,9 +99,9 @@ function attachClickInterceptor() {
  * @param {MouseEvent} e 事件对象
  */
 function handleClick(e: MouseEvent) {
-    // @ts-ignore: 自定义属性拦截
+    // @ts-expect-error: 自定义属性拦截
     if (e._edgedl_handled) return;
-    // @ts-ignore
+    // @ts-expect-error
     e._edgedl_handled = true;
 
     const target = e.target as HTMLElement;
