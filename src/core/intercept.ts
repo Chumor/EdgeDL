@@ -7,13 +7,29 @@ import { isDownloadLink } from './detector';
 import { showToast } from '../components/toast';
 import { extractUrlFromOnclick } from '../utils';
 
-let interceptEnabled = true;
+let interceptEnabled = false;
+let interceptStateReady = false;
 let bridgeAttached = false;
+
+const SCRIPT_NAVIGATION_USER_GESTURE_WINDOW_MS = 1500;
+let lastUserGestureAt = 0;
 
 type PageWindow = Window & typeof globalThis;
 
 function getPageWindow() {
     return ((globalThis as typeof globalThis & { unsafeWindow?: PageWindow }).unsafeWindow || window) as PageWindow;
+}
+
+function getControlledHostname() {
+    try {
+        return window.top?.location.hostname.toLowerCase() || location.hostname.toLowerCase();
+    } catch {
+        try {
+            return new URL(document.referrer).hostname.toLowerCase() || location.hostname.toLowerCase();
+        } catch {
+            return location.hostname.toLowerCase();
+        }
+    }
 }
 
 function isInvalidNavigationUrl(url: string) {
@@ -31,8 +47,13 @@ function normalizeUrl(input: unknown) {
     }
 }
 
-function tryInterceptNavigation(input: unknown) {
-    if (!interceptEnabled) return false;
+function hasRecentUserGesture() {
+    return Date.now() - lastUserGestureAt <= SCRIPT_NAVIGATION_USER_GESTURE_WINDOW_MS;
+}
+
+function tryInterceptNavigation(input: unknown, options?: { requireUserGesture?: boolean }) {
+    if (!interceptStateReady || !interceptEnabled) return false;
+    if (options?.requireUserGesture && !hasRecentUserGesture()) return false;
 
     const url = normalizeUrl(input);
     if (!url || !isDownloadLink(url)) return false;
@@ -55,13 +76,14 @@ export async function setInterceptSites(list: string[]) {
         typeof i === 'string' ? i.toLowerCase() : String(i).toLowerCase()
     );
     await GM_setValue(KEY, normalized);
-    interceptEnabled = !normalized.includes(location.hostname.toLowerCase());
+    interceptEnabled = !normalized.includes(getControlledHostname());
+    interceptStateReady = true;
     return normalized;
 }
 
 // 判断当前站点是否已跳过接管
 export async function isSiteIntercepted() {
-    const host = location.hostname.toLowerCase();
+    const host = getControlledHostname();
     const list = await getInterceptSites();
     if (list.length === 0) return false;
     return list.some(item => (item as string).toLowerCase() === host);
@@ -69,7 +91,7 @@ export async function isSiteIntercepted() {
 
 // 切换当前站点接管状态
 export async function toggleSiteIntercept() {
-    const host = location.hostname.toLowerCase();
+    const host = getControlledHostname();
     const list = await getInterceptSites();
 
     let added: boolean;
@@ -96,6 +118,8 @@ function attachClickInterceptor() {
  * @param {MouseEvent} e 事件对象
  */
 function handleClick(e: MouseEvent) {
+    lastUserGestureAt = Date.now();
+
     // @ts-expect-error: 自定义属性拦截
     if (e._edgedl_handled) return;
     // @ts-expect-error
@@ -141,6 +165,8 @@ function handleClick(e: MouseEvent) {
 
     if (!url || !isDownloadLink(url)) return;
 
+    if (!interceptStateReady) return;
+
     // 命中接管排除策略：跳过 EdgeDL 接管并提示，交还浏览器默认行为
     if (!interceptEnabled) {
         showToast('已跳过接管', { type: 'info', duration: 1500 });
@@ -165,6 +191,11 @@ export function attachPageBridgeInterceptor() {
 
     void isSiteIntercepted().then((value) => {
         interceptEnabled = !value;
+        interceptStateReady = true;
+    }).catch((error: unknown) => {
+        console.error('[EdgeDL] Failed to load site intercept state', error);
+        interceptEnabled = true;
+        interceptStateReady = true;
     });
 
     const pageWindow = getPageWindow();
@@ -202,7 +233,7 @@ export function attachPageBridgeInterceptor() {
             Object.defineProperty(pageWindow.HTMLIFrameElement.prototype, 'src', {
                 ...desc,
                 set: function patchedIframeSrc(this: HTMLIFrameElement, value: string) {
-                    if (value && isDownloadLink(value) && tryInterceptNavigation(value)) return;
+                    if (tryInterceptNavigation(value, { requireUserGesture: true })) return;
                     originalSet.call(this, value);
                 }
             });
@@ -211,7 +242,7 @@ export function attachPageBridgeInterceptor() {
         const originalSetAttribute = pageWindow.Element.prototype.setAttribute;
         pageWindow.Element.prototype.setAttribute = function patchedSetAttribute(this: Element, name: string, value: string) {
             if (this instanceof pageWindow.HTMLIFrameElement && name.toLowerCase() === 'src') {
-                if (value && isDownloadLink(value) && tryInterceptNavigation(value)) return;
+                if (tryInterceptNavigation(value, { requireUserGesture: true })) return;
             }
             return originalSetAttribute.call(this, name, value);
         };
